@@ -1,0 +1,57 @@
+# ----------------------get_data_census_acs_state_population_0_14_years.R---
+
+get_data_census_acs_state_population_0_14_years <- function() {
+  
+  # Install & load required libraries
+  # --------------------------------------------------------------------------
+  packages <- c("tidycensus","tidyverse","here")
+  install.packages(setdiff(packages, rownames(installed.packages())))
+  invisible(lapply(packages, library, character.only = TRUE))
+  
+  # Set file location relative to current project
+  # --------------------------------------------------------------------------
+  here::i_am("R/get_data_census_acs_state_population_0_14_years.R")
+  
+  # Create function get_data_census_acs_state_population_0_14_years by calling the census ACS API from tidycensus
+  # --------------------------------------------------------------------------
+  
+  # Get state data from Census ACS
+  df_state <- get_acs(geography = "state", 
+                variables = c("B01001_003E","B01001_004E","B01001_005E", # Male population age 0-4y, 5-9y, 10-14y
+                              "B01001_027E","B01001_028E","B01001_029E"), # Female population age 0-4y, 5-9y, 10-14y
+                year = 2023, 
+                geometry = FALSE) %>% 
+    group_by(GEOID, NAME) %>%
+    summarise(population_0_14_years = sum(estimate)) %>%
+    rename(state_fips_code = GEOID,
+           state_name = NAME)
+  
+  # Get national data from Census ACS
+  df_nation <- get_acs(geography = "us", 
+                variables = c("B01001_003E","B01001_004E","B01001_005E", # Male population age 0-4y, 5-9y, 10-14y
+                              "B01001_027E","B01001_028E","B01001_029E"), # Female population age 0-4y, 5-9y, 10-14y
+                year = 2023, 
+                geometry = FALSE) %>% 
+    group_by(GEOID, NAME) %>%
+    summarise(population_0_14_years = sum(estimate)) %>%
+    rename(state_fips_code = GEOID,
+           state_name = NAME)
+  
+  # Union state and nation data
+  df <- union(df_state,df_nation)
+  
+  # Write data as a rds called census_acs_state_population_0_14_years.rds to the project `data-raw` folder
+  write_path_rds <- here("data-raw/census_acs_state_population_0_14_years.rds")
+  saveRDS(df, file = write_path_rds)
+  
+  # Message specifying where data was written
+  print(paste0("Saved state data to ",write_path_rds))
+  
+  # Write data as a csv called census_acs_state_population_0_14_years.csv to the project `data-raw` folder
+  write_path_csv <- here("data-raw/csv/census_acs_state_population_0_14_years.csv")
+  write.csv(df, file = write_path_csv)
+  
+  # Message specifying where data was written
+  print(paste0("Saved state data to ",write_path_csv))
+  
+}
