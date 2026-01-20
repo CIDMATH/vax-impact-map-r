@@ -1,5 +1,5 @@
-# ----------------------get_and_process_data.R------------------------------
-
+# Function that runs all functions for getting and processing data
+# --------------------------------------------------------------------------
 get_and_process_data <- function() {
   
   # Install & load required libraries

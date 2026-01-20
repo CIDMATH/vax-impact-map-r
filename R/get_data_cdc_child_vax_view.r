@@ -1,5 +1,5 @@
-# ----------------------get_data_cdc_child_vax_view.R-----------------------
-
+# Create function get_data_cdc_child_vax_view for retrieving data from CDC Child Vax View
+# --------------------------------------------------------------------------
 get_data_cdc_child_vax_view <- function() {
   
   # Install & load required libraries

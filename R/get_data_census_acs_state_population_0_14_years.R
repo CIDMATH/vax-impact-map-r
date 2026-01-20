@@ -1,5 +1,5 @@
-# ----------------------get_data_census_acs_state_population_0_14_years.R---
-
+# Create function get_data_census_acs_state_population_0_14_years for retrieving Census ACS 2019-2023 5 year population estimates for children age 0-14 years
+# --------------------------------------------------------------------------
 get_data_census_acs_state_population_0_14_years <- function() {
   
   # Install & load required libraries
@@ -22,7 +22,9 @@ get_data_census_acs_state_population_0_14_years <- function() {
                 year = 2023, 
                 geometry = FALSE) %>% 
     group_by(GEOID, NAME) %>%
-    summarise(population_0_14_years = sum(estimate)) %>%
+    summarise(age_group_population = sum(estimate)) %>%
+    mutate(age_group = '0-14 years',
+           age_group_length = 15) %>%
     rename(state_fips_code = GEOID,
            state_name = NAME)
   
@@ -33,7 +35,9 @@ get_data_census_acs_state_population_0_14_years <- function() {
                 year = 2023, 
                 geometry = FALSE) %>% 
     group_by(GEOID, NAME) %>%
-    summarise(population_0_14_years = sum(estimate)) %>%
+    summarise(age_group_population = sum(estimate)) %>%
+    mutate(age_group = '0-14 years',
+           age_group_length = 15) %>%
     rename(state_fips_code = GEOID,
            state_name = NAME)
   

@@ -1,8 +1,5 @@
-# ----------------------read_data.R-----------------------------------------
-
-## Function to read data from `data-raw` folder
+# Function to read all data collected and processed from get_and_process_data.R
 # --------------------------------------------------------------------------
-
 read_data <- function() {
   
   # Install & load required libraries

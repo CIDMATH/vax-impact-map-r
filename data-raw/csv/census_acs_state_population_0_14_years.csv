@@ -1,54 +1,54 @@
-"","state_fips_code","state_name","population_0_14_years"
-"1","01","Alabama",929952
-"2","02","Alaska",149478
-"3","04","Arizona",1307309
-"4","05","Arkansas",581325
-"5","06","California",7177362
-"6","08","Colorado",1017573
-"7","09","Connecticut",593927
-"8","10","Delaware",173228
-"9","11","District of Columbia",109590
-"10","12","Florida",3543716
-"11","13","Georgia",2081700
-"12","15","Hawaii",253403
-"13","16","Idaho",379193
-"14","17","Illinois",2297588
-"15","18","Indiana",1312766
-"16","19","Iowa",606019
-"17","20","Kansas",580642
-"18","21","Kentucky",844481
-"19","22","Louisiana",903068
-"20","23","Maine",205240
-"21","24","Maryland",1135730
-"22","25","Massachusetts",1116593
-"23","26","Michigan",1763483
-"24","27","Minnesota",1086274
-"25","28","Mississippi",567202
-"26","29","Missouri",1141580
-"27","30","Montana",193479
-"28","31","Nebraska",400960
-"29","32","Nevada",571544
-"30","33","New Hampshire",208184
-"31","34","New Jersey",1668101
-"32","35","New Mexico",381182
-"33","36","New York",3397604
-"34","37","North Carolina",1908144
-"35","38","North Dakota",155795
-"36","39","Ohio",2145931
-"37","40","Oklahoma",796837
-"38","41","Oregon",703091
-"39","42","Pennsylvania",2194858
-"40","44","Rhode Island",170394
-"41","45","South Carolina",927487
-"42","46","South Dakota",182673
-"43","47","Tennessee",1285135
-"44","48","Texas",6179292
-"45","49","Utah",775949
-"46","50","Vermont",95003
-"47","51","Virginia",1563237
-"48","53","Washington",1390053
-"49","54","West Virginia",294071
-"50","55","Wisconsin",1042346
-"51","56","Wyoming",108413
-"52","72","Puerto Rico",429040
-"53","1","United States",60598185
+"","state_fips_code","state_name","age_group_population","age_group","age_group_length"
+"1","01","Alabama",929952,"0-14 years",15
+"2","02","Alaska",149478,"0-14 years",15
+"3","04","Arizona",1307309,"0-14 years",15
+"4","05","Arkansas",581325,"0-14 years",15
+"5","06","California",7177362,"0-14 years",15
+"6","08","Colorado",1017573,"0-14 years",15
+"7","09","Connecticut",593927,"0-14 years",15
+"8","10","Delaware",173228,"0-14 years",15
+"9","11","District of Columbia",109590,"0-14 years",15
+"10","12","Florida",3543716,"0-14 years",15
+"11","13","Georgia",2081700,"0-14 years",15
+"12","15","Hawaii",253403,"0-14 years",15
+"13","16","Idaho",379193,"0-14 years",15
+"14","17","Illinois",2297588,"0-14 years",15
+"15","18","Indiana",1312766,"0-14 years",15
+"16","19","Iowa",606019,"0-14 years",15
+"17","20","Kansas",580642,"0-14 years",15
+"18","21","Kentucky",844481,"0-14 years",15
+"19","22","Louisiana",903068,"0-14 years",15
+"20","23","Maine",205240,"0-14 years",15
+"21","24","Maryland",1135730,"0-14 years",15
+"22","25","Massachusetts",1116593,"0-14 years",15
+"23","26","Michigan",1763483,"0-14 years",15
+"24","27","Minnesota",1086274,"0-14 years",15
+"25","28","Mississippi",567202,"0-14 years",15
+"26","29","Missouri",1141580,"0-14 years",15
+"27","30","Montana",193479,"0-14 years",15
+"28","31","Nebraska",400960,"0-14 years",15
+"29","32","Nevada",571544,"0-14 years",15
+"30","33","New Hampshire",208184,"0-14 years",15
+"31","34","New Jersey",1668101,"0-14 years",15
+"32","35","New Mexico",381182,"0-14 years",15
+"33","36","New York",3397604,"0-14 years",15
+"34","37","North Carolina",1908144,"0-14 years",15
+"35","38","North Dakota",155795,"0-14 years",15
+"36","39","Ohio",2145931,"0-14 years",15
+"37","40","Oklahoma",796837,"0-14 years",15
+"38","41","Oregon",703091,"0-14 years",15
+"39","42","Pennsylvania",2194858,"0-14 years",15
+"40","44","Rhode Island",170394,"0-14 years",15
+"41","45","South Carolina",927487,"0-14 years",15
+"42","46","South Dakota",182673,"0-14 years",15
+"43","47","Tennessee",1285135,"0-14 years",15
+"44","48","Texas",6179292,"0-14 years",15
+"45","49","Utah",775949,"0-14 years",15
+"46","50","Vermont",95003,"0-14 years",15
+"47","51","Virginia",1563237,"0-14 years",15
+"48","53","Washington",1390053,"0-14 years",15
+"49","54","West Virginia",294071,"0-14 years",15
+"50","55","Wisconsin",1042346,"0-14 years",15
+"51","56","Wyoming",108413,"0-14 years",15
+"52","72","Puerto Rico",429040,"0-14 years",15
+"53","1","United States",60598185,"0-14 years",15

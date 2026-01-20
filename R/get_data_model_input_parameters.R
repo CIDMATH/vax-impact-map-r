@@ -1,5 +1,5 @@
-# ----------------------get_data_model_input_parameters.R-------------------
-
+# Create function get_data_model_input_parameters for retrieving model input parameters gather from literature review and entered into model_input_parameters.csv
+# --------------------------------------------------------------------------
 get_data_model_input_parameters <- function() {
   
   # Install & load required libraries

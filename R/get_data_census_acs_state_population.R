@@ -1,5 +1,5 @@
-# ----------------------get_data_census_acs_state_population.R--------------
-
+# Create function get_data_census_acs_state_population for retrieving Census ACS 2019-2023 5 year total population estimates
+# --------------------------------------------------------------------------
 get_data_census_acs_state_population <- function() {
   
   # Install & load required libraries
@@ -21,7 +21,7 @@ get_data_census_acs_state_population <- function() {
                 year = 2023, 
                 geometry = FALSE) %>% 
     group_by(GEOID, NAME) %>%
-    summarise(population = sum(estimate)) %>%
+    summarise(total_population = sum(estimate)) %>%
     rename(state_fips_code = GEOID,
            state_name = NAME)
   
@@ -31,7 +31,7 @@ get_data_census_acs_state_population <- function() {
                       year = 2023, 
                       geometry = FALSE) %>% 
     group_by(GEOID, NAME) %>%
-    summarise(population = sum(estimate)) %>%
+    summarise(total_population = sum(estimate)) %>%
     rename(state_fips_code = GEOID,
            state_name = NAME)
   

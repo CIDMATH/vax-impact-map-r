@@ -1,18 +1,16 @@
-# ----------------------get_data_census_acs_state_population_0_4_years.R----
-
-# Install & load required libraries
-# --------------------------------------------------------------------------
-packages <- c("tidycensus","tidyverse","here")
-install.packages(setdiff(packages, rownames(installed.packages())))
-invisible(lapply(packages, library, character.only = TRUE))
-
-# Set file location relative to current project
-# --------------------------------------------------------------------------
-here::i_am("R/get_data_census_acs_state_population_0_4_years.R")
-
-# Create function get_data_census_acs_state_population_0_4_years by calling the census ACS API from tidycensus
+# Create function get_data_census_acs_state_population_0_14_years for retrieving Census ACS 2019-2023 5 year population estimates for children age 0-4 years
 # --------------------------------------------------------------------------
 get_data_census_acs_state_population_0_4_years <- function() {
+  
+  # Install & load required libraries
+  # --------------------------------------------------------------------------
+  packages <- c("tidycensus","tidyverse","here")
+  install.packages(setdiff(packages, rownames(installed.packages())))
+  invisible(lapply(packages, library, character.only = TRUE))
+  
+  # Set file location relative to current project
+  # --------------------------------------------------------------------------
+  here::i_am("R/get_data_census_acs_state_population_0_4_years.R")
   
   # Get state data from Census ACS
   df_state <- get_acs(geography = "state", 
@@ -21,7 +19,9 @@ get_data_census_acs_state_population_0_4_years <- function() {
                 year = 2023, 
                 geometry = FALSE) %>% 
     group_by(GEOID, NAME) %>%
-    summarise(population_0_4_years = sum(estimate)) %>%
+    summarise(age_group_population = sum(estimate)) %>%
+    mutate(age_group = '0-4 years',
+           age_group_length = 5) %>%
     rename(state_fips_code = GEOID,
            state_name = NAME)
   
@@ -32,7 +32,9 @@ get_data_census_acs_state_population_0_4_years <- function() {
                 year = 2023, 
                 geometry = FALSE) %>% 
     group_by(GEOID, NAME) %>%
-    summarise(population_0_4_years = sum(estimate)) %>%
+    summarise(age_group_population = sum(estimate)) %>%
+    mutate(age_group = '0-4 years',
+           age_group_length = 5) %>%
     rename(state_fips_code = GEOID,
            state_name = NAME)
   

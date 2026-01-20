@@ -1,5 +1,3 @@
-# ----------------------get_data_census_acs_states.R------------------------
-
 # Create function get_data_census_acs_states by calling the census ACS API from tidycensus
 # --------------------------------------------------------------------------
 get_data_census_acs_states <- function() {

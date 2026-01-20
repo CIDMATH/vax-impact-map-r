@@ -1,5 +1,5 @@
-# ----------------------process_data_cdc_child_vax_view_rotavirus.R-----------------------
-
+# Create function process_data_cdc_child_vax_view_rotavirus for processing rotavirus vaccine data from CDC Child Vax View
+# --------------------------------------------------------------------------
 process_data_cdc_child_vax_view_rotavirus <- function() {
   
   # Install & load required libraries

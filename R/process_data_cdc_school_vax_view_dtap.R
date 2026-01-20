@@ -1,5 +1,5 @@
-# ----------------------process_data_cdc_school_vax_view_dtap.R-----------------------
-
+# Create function process_data_cdc_school_vax_view_dtap for processing cdc_school_vax_view.rds
+# --------------------------------------------------------------------------
 process_data_cdc_school_vax_view_dtap <- function() {
   
   # Install & load required libraries
