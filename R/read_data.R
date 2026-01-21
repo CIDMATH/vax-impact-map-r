@@ -10,7 +10,8 @@ read_data <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/read_data.R")
+  suppressMessages(here::i_am("R/read_data.R"))
+  print("-A. read_data.R")
   
   # Read data
   # --------------------------------------------------------------------------

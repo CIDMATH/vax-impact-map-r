@@ -10,7 +10,8 @@ get_data_model_input_parameters <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/get_data_model_input_parameters.R")
+  suppressMessages(here::i_am("R/get_data_model_input_parameters.R"))
+  print("--3. get_data_model_input_parameters.R")
   
   # Create function get_data_model_input_parameters by reading the model_input_parameters CSV from the `data-raw` folder
   # --------------------------------------------------------------------------
@@ -24,6 +25,6 @@ get_data_model_input_parameters <- function() {
   saveRDS(df, file = write_path_rds)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_rds))
+  # print(paste0("Saved state data to ",write_path_rds))
   
 }

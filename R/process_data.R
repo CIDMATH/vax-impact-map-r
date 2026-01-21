@@ -1,6 +1,6 @@
-# Function that runs all functions for getting and processing data
+# Function that runs all functions for getting data
 # --------------------------------------------------------------------------
-get_and_process_data <- function() {
+process_data <- function() {
   
   # Install & load required libraries
   # --------------------------------------------------------------------------
@@ -10,20 +10,15 @@ get_and_process_data <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  suppressMessages(here::i_am("R/get_and_process_data.R"))
-  print("I. get_and_process_data.R")
+  suppressMessages(here::i_am("R/process_data.R"))
+  print("-B. process_data.R")
   
-  # Source and run functions for getting and processing data
+  # Source and run functions for processing data
   # --------------------------------------------------------------------------
   
-  # Get data
-  read_path_get_data_r <- here("R/get_data.R")
-  source(read_path_get_data_r)
-  get_data()
-  
-  # Process data
-  read_path_process_data_r <- here("R/process_data.R")
-  source(read_path_process_data_r)
-  process_data()
+  # Process CDC data
+  read_path_process_data_cdc_r <- here("R/process_data_cdc.R")
+  source(read_path_process_data_cdc_r)
+  process_data_cdc()
 
 }

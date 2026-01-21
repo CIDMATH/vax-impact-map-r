@@ -11,7 +11,8 @@ calculate_structural_vaccine_coverage <- function(df) {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/calculate_structural_vaccine_coverage.R")
+  suppressMessages(here::i_am("R/calculate_structural_vaccine_coverage.R"))
+  print("-C. calculate_structural_vaccine_coverage.R")
   
   ## Calculate vaccine coverage among birth cohorts impacted by declining vaccine coverage
   df$coverage_with_decline_applied <- pmax(df$vaccine_coverage_estimate - df$declining_coverage_among_new_births,0)

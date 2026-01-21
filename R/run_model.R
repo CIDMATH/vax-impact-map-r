@@ -11,7 +11,14 @@ run_model <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/run_model.R")
+  suppressMessages(here::i_am("R/run_model.R"))
+  print("II. run_model.R")
+  
+  ## Read the model input data
+  # --------------------------------------------------------------------------
+  read_path_read_data_r <- here("R/read_data.R")
+  source(read_path_read_data_r)
+  read_data()
   
   ## Compile the model input data
   # --------------------------------------------------------------------------
@@ -37,17 +44,23 @@ run_model <- function() {
   source(read_path_calculate_infections_r)
   df_model_data <- calculate_infections(df_model_data)
   
-  ## Calibrate infections using observed national data
-  # --------------------------------------------------------------------------
-  read_path_calibrate_infections_r <- here("R/calibrate_infections.R")
-  source(read_path_calibrate_infections_r)
-  df_model_data <- calibrate_infections(df_model_data)
-  
   ## Calculate disease burden
   # --------------------------------------------------------------------------
   read_path_calculate_disease_burden_r <- here("R/calculate_disease_burden.R")
   source(read_path_calculate_disease_burden_r)
   df_model_data <- calculate_disease_burden(df_model_data)
+  
+  ## Calibrate model using observed national data
+  # --------------------------------------------------------------------------
+  read_path_calibrate_r <- here("R/calibrate.R")
+  source(read_path_calibrate_r)
+  df_model_data <- calibrate(df_model_data)
+  
+  ## Calculate economic impact
+  # --------------------------------------------------------------------------
+  read_path_calculate_economic_impact_r <- here("R/calculate_economic_impact.R")
+  source(read_path_calculate_economic_impact_r)
+  df_model_data <- calculate_economic_impact(df_model_data)
   
   ## Calculate additional disease burden from declining vaccine coverage relative to current baseline vaccination coverage
   # --------------------------------------------------------------------------
@@ -62,13 +75,13 @@ run_model <- function() {
   saveRDS(df_model_data, file = write_path_rds)
   
   # Message specifying where data was written
-  print(paste0("Saved model output to ",write_path_rds))
+  # print(paste0("Saved model output to ",write_path_rds))
   
   # Write data as a csv called vax_impact_map_model_output.csv to the project `data` folder
   write_path_csv <- here("data/csv/vax_impact_map_model_output.csv")
   write.csv(df_model_data, file = write_path_csv)
   
   # Message specifying where data was written
-  print(paste0("Saved model output to ",write_path_csv))
+  # print(paste0("Saved model output to ",write_path_csv))
   
 }

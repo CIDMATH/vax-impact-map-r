@@ -10,7 +10,8 @@ process_data_cdc_child_vax_view_pcv <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/process_data_cdc_child_vax_view_pcv.R")
+  suppressMessages(here::i_am("R/process_data_cdc_child_vax_view_pcv.R"))
+  print("----ii. process_data_cdc_child_vax_view_pcv.R")
   
   # Create function process_data_cdc_child_vax_view_pcv by reading cdc_child_vax_view.rds in data-raw
   # --------------------------------------------------------------------------
@@ -19,7 +20,7 @@ process_data_cdc_child_vax_view_pcv <- function() {
   read_path_rds <- here("data-raw/cdc_child_vax_view.rds")
   df <- readRDS(read_path_rds)
   
-  # Filter the data for rotavirus
+  # Filter the data for PCV
   df_processed <- df %>% 
     filter(Vaccine=='PCV' & 
              Birth.Year.Birth.Cohort=='2021' &
@@ -64,13 +65,13 @@ process_data_cdc_child_vax_view_pcv <- function() {
   saveRDS(df_processed, file = write_path_rds)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_rds))
+  # print(paste0("Saved state data to ",write_path_rds))
   
   # Write data as a csv called cdc_child_vax_view_pcv.csv to the project `data-raw` folder
   write_path_csv <- here("data-raw/csv/cdc_child_vax_view_pcv.csv")
   write.csv(df_processed, file = write_path_csv)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_csv))
+  # print(paste0("Saved state data to ",write_path_csv))
   
 }

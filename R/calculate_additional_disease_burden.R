@@ -11,7 +11,8 @@ calculate_additional_disease_burden <- function(df) {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/calculate_additional_disease_burden.R")
+  suppressMessages(here::i_am("R/calculate_additional_disease_burden.R"))
+  print("-H. calculate_additional_disease_burden.R")
   
   # Start by joining the dataframe onto a version of itself filtered to declining_coverage_among_new_births = 0 and joining by state_fips_code, disease, time_horizon
   # --------------------------------------------------------------------------
@@ -82,7 +83,7 @@ calculate_additional_disease_burden <- function(df) {
            duration_infectious_days,
            duration_sick_days,
            cost_wage_daily,
-           proportion_hospitalized_given_infected,
+           proportion_hospitalized_given_case,
            duration_hospitalized_days,
            cost_hospitalization_daily,
            death_rate,

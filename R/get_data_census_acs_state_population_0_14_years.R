@@ -10,36 +10,43 @@ get_data_census_acs_state_population_0_14_years <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/get_data_census_acs_state_population_0_14_years.R")
+  suppressMessages(here::i_am("R/get_data_census_acs_state_population_0_14_years.R"))
+  print("---c. get_data_census_acs_state_population_0_14_years.R")
   
   # Create function get_data_census_acs_state_population_0_14_years by calling the census ACS API from tidycensus
   # --------------------------------------------------------------------------
   
   # Get state data from Census ACS
-  df_state <- get_acs(geography = "state", 
-                variables = c("B01001_003E","B01001_004E","B01001_005E", # Male population age 0-4y, 5-9y, 10-14y
-                              "B01001_027E","B01001_028E","B01001_029E"), # Female population age 0-4y, 5-9y, 10-14y
-                year = 2023, 
-                geometry = FALSE) %>% 
-    group_by(GEOID, NAME) %>%
-    summarise(age_group_population = sum(estimate)) %>%
-    mutate(age_group = '0-14 years',
-           age_group_length = 15) %>%
-    rename(state_fips_code = GEOID,
-           state_name = NAME)
+  df_state <- suppressMessages(
+                get_acs(geography = "state", 
+                            variables = c("B01001_003E","B01001_004E","B01001_005E", # Male population age 0-4y, 5-9y, 10-14y
+                                          "B01001_027E","B01001_028E","B01001_029E"), # Female population age 0-4y, 5-9y, 10-14y
+                            year = 2023, 
+                            geometry = FALSE)
+                ) %>% 
+                group_by(GEOID, NAME) %>%
+                summarise(.groups="keep", age_group_population = sum(estimate)) %>%
+                mutate(age_group = '0-14 years',
+                       age_group_length = 15) %>%
+                rename(state_fips_code = GEOID,
+                       state_name = NAME) %>%
+                ungroup()
   
   # Get national data from Census ACS
-  df_nation <- get_acs(geography = "us", 
-                variables = c("B01001_003E","B01001_004E","B01001_005E", # Male population age 0-4y, 5-9y, 10-14y
-                              "B01001_027E","B01001_028E","B01001_029E"), # Female population age 0-4y, 5-9y, 10-14y
-                year = 2023, 
-                geometry = FALSE) %>% 
-    group_by(GEOID, NAME) %>%
-    summarise(age_group_population = sum(estimate)) %>%
-    mutate(age_group = '0-14 years',
-           age_group_length = 15) %>%
-    rename(state_fips_code = GEOID,
-           state_name = NAME)
+  df_nation <- suppressMessages(
+                get_acs(geography = "us", 
+                            variables = c("B01001_003E","B01001_004E","B01001_005E", # Male population age 0-4y, 5-9y, 10-14y
+                                          "B01001_027E","B01001_028E","B01001_029E"), # Female population age 0-4y, 5-9y, 10-14y
+                            year = 2023, 
+                            geometry = FALSE)
+                ) %>% 
+                group_by(GEOID, NAME) %>%
+                summarise(.groups="keep", age_group_population = sum(estimate)) %>%
+                mutate(age_group = '0-14 years',
+                       age_group_length = 15) %>%
+                rename(state_fips_code = GEOID,
+                       state_name = NAME) %>%
+                ungroup()
   
   # Union state and nation data
   df <- union(df_state,df_nation)
@@ -49,13 +56,13 @@ get_data_census_acs_state_population_0_14_years <- function() {
   saveRDS(df, file = write_path_rds)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_rds))
+  # print(paste0("Saved state data to ",write_path_rds))
   
   # Write data as a csv called census_acs_state_population_0_14_years.csv to the project `data-raw` folder
   write_path_csv <- here("data-raw/csv/census_acs_state_population_0_14_years.csv")
   write.csv(df, file = write_path_csv)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_csv))
+  # print(paste0("Saved state data to ",write_path_csv))
   
 }

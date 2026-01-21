@@ -1,29 +1,24 @@
-# Function that runs all functions for getting and processing data
+# Calibrate rotavirus model parameters using observed national level data 
 # --------------------------------------------------------------------------
-get_and_process_data <- function() {
+
+calibrate_rota_deaths <- function(df) {
   
   # Install & load required libraries
   # --------------------------------------------------------------------------
-  packages <- c("tidycensus","tidyverse","here")
+  packages <- c("tidyverse","here")
   install.packages(setdiff(packages, rownames(installed.packages())))
   invisible(lapply(packages, library, character.only = TRUE))
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  suppressMessages(here::i_am("R/get_and_process_data.R"))
-  print("I. get_and_process_data.R")
+  suppressMessages(here::i_am("R/calibrate_rota.R"))
+  print("---c. calibrate_rota_deaths.R")
   
-  # Source and run functions for getting and processing data
+  ## Back-calculate rotavirus deaths using the combination of calibrated cases and P(death|case)
   # --------------------------------------------------------------------------
+  df$deaths <- df$cases * df$death_rate
+  df$deaths_per_100k <- df$deaths / df$age_group_population * 100000
   
-  # Get data
-  read_path_get_data_r <- here("R/get_data.R")
-  source(read_path_get_data_r)
-  get_data()
+  return(df)
   
-  # Process data
-  read_path_process_data_r <- here("R/process_data.R")
-  source(read_path_process_data_r)
-  process_data()
-
 }

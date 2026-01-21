@@ -1,29 +1,24 @@
-# Function that runs all functions for getting and processing data
+# Calibrate pneumococcal model parameters using observed national level data 
 # --------------------------------------------------------------------------
-get_and_process_data <- function() {
+
+calibrate_pneumo_cases <- function(df) {
   
   # Install & load required libraries
   # --------------------------------------------------------------------------
-  packages <- c("tidycensus","tidyverse","here")
+  packages <- c("tidyverse","here")
   install.packages(setdiff(packages, rownames(installed.packages())))
   invisible(lapply(packages, library, character.only = TRUE))
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  suppressMessages(here::i_am("R/get_and_process_data.R"))
-  print("I. get_and_process_data.R")
+  suppressMessages(here::i_am("R/calibrate_pneumo_cases.R"))
+  print("---c. calibrate_pneumo_cases.R")
   
-  # Source and run functions for getting and processing data
+  ## Back-calculate rotavirus cases using the combination of calibrated hospitalization and P(hospitalized|case)
   # --------------------------------------------------------------------------
+  df$cases <- df$hospitalizations / df$proportion_hospitalized_given_case
+  df$cases_per_100k <- df$cases / df$age_group_population * 100000
   
-  # Get data
-  read_path_get_data_r <- here("R/get_data.R")
-  source(read_path_get_data_r)
-  get_data()
+  return(df)
   
-  # Process data
-  read_path_process_data_r <- here("R/process_data.R")
-  source(read_path_process_data_r)
-  process_data()
-
 }

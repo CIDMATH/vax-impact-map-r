@@ -10,7 +10,8 @@ get_data_cdc_child_vax_view <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/get_data_cdc_child_vax_view.R")
+  suppressMessages(here::i_am("R/get_data_cdc_child_vax_view.R"))
+  print("---a. get_data_cdc_child_vax_view.R")
   
   # Create function get_data_cdc_child_vax_view by reading the CSV from the data.cdc.gov Socrata API
   # See: https://data.cdc.gov/Child-Vaccinations/Vaccination-Coverage-among-Young-Children-0-35-Mon/fhky-rtsk/about_data
@@ -23,13 +24,13 @@ get_data_cdc_child_vax_view <- function() {
   saveRDS(df, file = write_path_rds)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_rds))
+  # print(paste0("Saved state data to ",write_path_rds))
   
   # Write data as a csv called cdc_child_vax_view.csv to the project `data-raw` folder
   write_path_csv <- here("data-raw/csv/cdc_child_vax_view.csv")
   write.csv(df, file = write_path_csv)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_csv))
+  # print(paste0("Saved state data to ",write_path_csv))
   
 }

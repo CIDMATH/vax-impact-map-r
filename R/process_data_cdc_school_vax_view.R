@@ -1,7 +1,6 @@
-# Calculate infections based on endemic equilibrium annual incidence 
+# Function that runs all functions for processing CDC school vax view data
 # --------------------------------------------------------------------------
-
-calculate_infections <- function(df) {
+process_data_cdc_school_vax_view <- function() {
   
   # Install & load required libraries
   # --------------------------------------------------------------------------
@@ -11,14 +10,15 @@ calculate_infections <- function(df) {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  suppressMessages(here::i_am("R/calculate_infections.R"))
-  print("-E. calculate_infections.R")
+  suppressMessages(here::i_am("R/process_data_cdc_school_vax_view.R"))
+  print("---b. process_data_cdc_school_vax_view.R")
   
-  ## Calculate modeled number of infections
+  # Source and run functions for processing cdc school vax view data
   # --------------------------------------------------------------------------
-  df$infections <- df$endemic_equilibrium_incidence_rate_annual * df$age_group_population
-  df$infections_per_100k <- df$infections / df$age_group_population * 100000
   
-  return(df)
-  
+  # process_data_cdc_school_vax_view_dtap.R
+  read_path_process_data_cdc_school_vax_view_dtap_r <- here("R/process_data_cdc_school_vax_view_dtap.R")
+  source(read_path_process_data_cdc_school_vax_view_dtap_r)
+  process_data_cdc_school_vax_view_dtap()
+
 }

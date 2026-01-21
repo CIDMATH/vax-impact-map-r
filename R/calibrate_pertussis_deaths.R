@@ -1,7 +1,7 @@
-# Calibrate model infections using observed national level data 
+# Calibrate pertussis deaths model parameters using observed national level data 
 # --------------------------------------------------------------------------
 
-calibrate_infections <- function(df) {
+calibrate_pertussis_deaths <- function(df) {
   
   # Install & load required libraries
   # --------------------------------------------------------------------------
@@ -11,27 +11,34 @@ calibrate_infections <- function(df) {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/calibrate_infections.R")
+  suppressMessages(here::i_am("R/calibrate_pertussis_deaths.R"))
+  print("---c. calibrate_pertussis_deaths.R")
+  
+  ## Run pertussis deaths calibration based on observed data
+  # --------------------------------------------------------------------------
   
   # Sum model infections for the United States at baseline
   # --------------------------------------------------------------------------
-  infections_national_model <- df %>% 
-    filter(state_name=='United States' & declining_coverage_among_new_births==0) %>% 
-    group_by(disease, time_horizon) %>%
-    summarise(infections_national_model = sum(infections))
-    
+  deaths_national_model <- df %>% 
+    filter(state_name=='United States' & 
+             declining_coverage_among_new_births==0) %>% 
+    group_by(time_horizon) %>%
+    summarise(deaths_national_model = sum(deaths))
+  
   # Join the summed data back onto the dataframe
   # --------------------------------------------------------------------------
-  df <- left_join(df, infections_national_model, by = c("disease" = "disease", "time_horizon" = "time_horizon"))
+  df <- left_join(df, deaths_national_model, by = c("time_horizon" = "time_horizon"))
   
   # Determine calibration factor for modeled estimates based on observed national data
   # --------------------------------------------------------------------------
-  df$calibration_factor <- df$observed_national_cases / df$infections_national_model
+  calibration_factor <- df$observed_national_deaths / df$deaths_national_model
   
-  # Apply calibration factor to modeled infections
+  # Apply calibration factor to modeled deaths
   # --------------------------------------------------------------------------
-  df$cases <- df$calibration_factor * df$infections
-  df$cases_per_100k <- df$cases / df$age_group_population * 100000
+  df$deaths <- calibration_factor * df$deaths
+  df$deaths_per_100k <- df$deaths / df$age_group_population * 100000
+  
+  df <- df %>% select(-deaths_national_model)
   
   return(df)
   

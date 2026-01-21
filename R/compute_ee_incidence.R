@@ -11,7 +11,8 @@ compute_ee_incidence <- function(df) {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/compute_ee_incidence.R")
+  suppressMessages(here::i_am("R/compute_ee_incidence.R"))
+  print("-D. compute_ee_incidence.R")
   
   ## Apply a naive assumption that the population of all birth cohorts, past and future, comprising the age group band of interest is the same
   # ex. If the age band of interest for rotavirus is age 0-4 years and the population is 100, then assume 0-1y, 1-2y, 2-3y, 3-4y, 4-5y all has population of 20 an that that pattern will continue for future birth cohorts
@@ -32,7 +33,18 @@ compute_ee_incidence <- function(df) {
   
   # If SIR, then incidence_rate_annual is annual_turnover_rate * ee_incidence_core
   # If SIRS, then incidence_rate_annual is (((recovery_rate_annual + population_turnover_rate_annual) * (population_turnover_rate_annual + waning_rate_annual)) / (recovery_rate_annual + population_turnover_rate_annual + waning_rate_annual)) * ee_incidence_core
-  df$endemic_equilibrium_incidence_rate_annual <- ifelse(df$model_type=='SIR', population_turnover_rate_annual * ee_incidence_core, (((recovery_rate_annual + population_turnover_rate_annual) * (population_turnover_rate_annual + waning_rate_annual)) / (recovery_rate_annual + population_turnover_rate_annual + waning_rate_annual)) * ee_incidence_core)
+  # Note that with high enough vaccination coverage that ee_incidence can fall below 0. So setting lower bound of 0 using pmax.
+  df$endemic_equilibrium_incidence_rate_annual <- ifelse(
+                                                    df$model_type=='SIR', 
+                                                    pmax(
+                                                      population_turnover_rate_annual * ee_incidence_core,
+                                                      0
+                                                    ), 
+                                                    pmax(
+                                                      (((recovery_rate_annual + population_turnover_rate_annual) * (population_turnover_rate_annual + waning_rate_annual)) / (recovery_rate_annual + population_turnover_rate_annual + waning_rate_annual)) * ee_incidence_core,
+                                                      0
+                                                    )
+                                                  )
   
   return(df)
   

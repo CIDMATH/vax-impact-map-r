@@ -11,15 +11,10 @@ compile_model_input_data <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/compile_model_input_data.R")
-
-  ## Read in data
-  # --------------------------------------------------------------------------
-  read_path_read_data_r <- here("R/read_data.R")
-  source(read_path_read_data_r)
-  read_data()
+  suppressMessages(here::i_am("R/compile_model_input_data.R"))
+  print("-B. compile_model_input_data.R")
   
-  ## Compile model input data
+  # Compile model input data data
   # --------------------------------------------------------------------------
   
   # Create rotavirus data table
@@ -40,8 +35,8 @@ compile_model_input_data <- function() {
   
   # Union rotavirus, PCV, and pertussis data to create the start of the model input data frame
   df_model_input_data <- union(df_census_0_4_rota_w_model_input_params,
-                               df_census_0_4_pcv_w_model_input_params,
-                               df_census_0_14_dtap_w_model_input_params)
+                               df_census_0_4_pcv_w_model_input_params) %>%
+                         union(df_census_0_14_dtap_w_model_input_params)
   
   # Next, add rows for declining vaccination coverage among births, ranging from 0 to 100%, and 1 to 5 years as the time horizons of interest
   declining_coverage_among_new_births <- 0:20 # Create vector 0 to 20
@@ -69,7 +64,7 @@ compile_model_input_data <- function() {
                                                                           duration_infectious_days,
                                                                           duration_sick_days,
                                                                           cost_wage_daily,
-                                                                          proportion_hospitalized_given_infected,
+                                                                          proportion_hospitalized_given_case,
                                                                           duration_hospitalized_days,
                                                                           cost_hospitalization_daily,
                                                                           death_rate,

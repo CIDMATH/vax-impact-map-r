@@ -10,30 +10,38 @@ get_data_census_acs_state_population <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/get_data_census_acs_state_population.R")
+  suppressMessages(here::i_am("R/get_data_census_acs_state_population.R"))
+  print("---d. get_data_census_acs_state_population.R")
   
   # Create function get_data_census_acs_state_population by calling the census ACS API from tidycensus
   # --------------------------------------------------------------------------
   
   # Get state data from Census ACS
-  df_state <- get_acs(geography = "state", 
-                variables = "B01001_001E", # Total Population
-                year = 2023, 
-                geometry = FALSE) %>% 
-    group_by(GEOID, NAME) %>%
-    summarise(total_population = sum(estimate)) %>%
-    rename(state_fips_code = GEOID,
-           state_name = NAME)
+  df_state <- suppressMessages(
+                get_acs(geography = "state", 
+                            variables = "B01001_001E", # Total Population
+                            year = 2023, 
+                            geometry = FALSE)
+                ) %>% 
+                group_by(GEOID, NAME) %>%
+                summarise(.groups="keep", total_population = sum(estimate)) %>%
+                rename(state_fips_code = GEOID,
+                       state_name = NAME) %>%
+                ungroup()
+              
   
   # Get national data from Census ACS
-  df_nation <- get_acs(geography = "us", 
-                      variables = "B01001_001E", # Total Population
-                      year = 2023, 
-                      geometry = FALSE) %>% 
-    group_by(GEOID, NAME) %>%
-    summarise(total_population = sum(estimate)) %>%
-    rename(state_fips_code = GEOID,
-           state_name = NAME)
+  df_nation <- suppressMessages(
+                get_acs(geography = "us", 
+                                  variables = "B01001_001E", # Total Population
+                                  year = 2023, 
+                                  geometry = FALSE)
+                ) %>% 
+                group_by(GEOID, NAME) %>%
+                summarise(.groups="keep", total_population = sum(estimate)) %>%
+                rename(state_fips_code = GEOID,
+                       state_name = NAME) %>%
+                ungroup()
   
   # Union state and nation data
   df <- union(df_state,df_nation)
@@ -43,13 +51,13 @@ get_data_census_acs_state_population <- function() {
   saveRDS(df, file = write_path_rds)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_rds))
+  # print(paste0("Saved state data to ",write_path_rds))
   
   # Write data as a csv called census_acs_state_population.csv to the project `data-raw` folder
   write_path_csv <- here("data-raw/csv/census_acs_state_population.csv")
   write.csv(df, file = write_path_csv)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_csv))
+  # print(paste0("Saved state data to ",write_path_csv))
   
 }

@@ -10,7 +10,8 @@ process_data_cdc_school_vax_view_dtap <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/process_data_cdc_school_vax_view_dtap.R")
+  suppressMessages(here::i_am("R/process_data_cdc_school_vax_view_dtap.R"))
+  print("----i. process_data_cdc_school_vax_view_dtap.R")
   
   # Create function process_data_cdc_school_vax_view_dtap by reading cdc_school_vax_view.rds in data-raw
   # --------------------------------------------------------------------------
@@ -39,13 +40,13 @@ process_data_cdc_school_vax_view_dtap <- function() {
   saveRDS(df_processed, file = write_path_rds)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_rds))
+  # print(paste0("Saved state data to ",write_path_rds))
   
   # Write data as a csv called cdc_school_vax_view_dtap.csv to the project `data-raw` folder
   write_path_csv <- here("data-raw/csv/cdc_school_vax_view_dtap.csv")
   write.csv(df_processed, file = write_path_csv)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_csv))
+  # print(paste0("Saved state data to ",write_path_csv))
   
 }

@@ -10,25 +10,30 @@ get_data_census_acs_states <- function() {
   
   # Set file location relative to current project
   # --------------------------------------------------------------------------
-  here::i_am("R/get_data_census_acs_states.R")
+  suppressMessages(here::i_am("R/get_data_census_acs_states.R"))
+  print("---a. get_data_census_acs_states.R")
   
   # Get state data from Census ACS
-  df_state <- get_acs(geography = "state", 
-                variables = "B01001_001",
-                year = 2020, 
-                geometry = FALSE) %>% 
-        select(GEOID, NAME) %>% 
-        rename(state_fips_code = GEOID,
-               state_name = NAME)
+  df_state <- suppressMessages(
+                get_acs(geography = "state", 
+                  variables = "B01001_001",
+                  year = 2020, 
+                  geometry = FALSE)
+              ) %>% 
+              select(GEOID, NAME) %>% 
+              rename(state_fips_code = GEOID,
+                     state_name = NAME)
   
   # Get nation data from Census ACS
-  df_nation <- get_acs(geography = "us", 
-                variables = "B01001_001",
-                year = 2020, 
-                geometry = FALSE) %>% 
-    select(GEOID, NAME) %>% 
-    rename(state_fips_code = GEOID,
-           state_name = NAME)
+  df_nation <- suppressMessages(
+                 get_acs(geography = "us", 
+                  variables = "B01001_001",
+                  year = 2020, 
+                  geometry = FALSE)
+                ) %>% 
+                select(GEOID, NAME) %>% 
+                rename(state_fips_code = GEOID,
+                       state_name = NAME)
   
   # Union state and nation data
   df <- union(df_state,df_nation)
@@ -38,13 +43,13 @@ get_data_census_acs_states <- function() {
   saveRDS(df, file = write_path_rds)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_rds))
+  # print(paste0("Saved state data to ",write_path_rds))
   
   # Write data as a csv called census_acs_states.csv to the project `data-raw` folder
   write_path_csv <- here("data-raw/csv/census_acs_states.csv")
   write.csv(df, file = write_path_csv)
   
   # Message specifying where data was written
-  print(paste0("Saved state data to ",write_path_csv))
+  # print(paste0("Saved state data to ",write_path_csv))
   
 }
