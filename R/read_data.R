@@ -43,6 +43,10 @@ read_data <- function() {
   read_path_cdc_child_vax_view_rotavirus_rds <- here("data-raw/cdc_child_vax_view_rotavirus.rds")
   cdc_child_vax_view_rotavirus_df <- readRDS(read_path_cdc_child_vax_view_rotavirus_rds)
   
+  # Read cdc_child_vax_view_pcv.rds from the project `data-raw` folder
+  read_path_cdc_child_vax_view_pcv_rds <- here("data-raw/cdc_child_vax_view_pcv.rds")
+  cdc_child_vax_view_pcv_df <- readRDS(read_path_cdc_child_vax_view_pcv_rds)
+  
   ## Model input parameters
   
   # Read model_input_parameters.rds from the project `data-raw` folder
@@ -56,6 +60,7 @@ read_data <- function() {
                            census_acs_state_population_0_14_years_df=census_acs_state_population_0_14_years_df,
                            cdc_school_vax_view_dtap_df=cdc_school_vax_view_dtap_df,
                            cdc_child_vax_view_rotavirus_df=cdc_child_vax_view_rotavirus_df,
+                           cdc_child_vax_view_pcv_df=cdc_child_vax_view_pcv_df,
                            model_input_parameters_df=model_input_parameters_df)
   
   ## Get dataframes from list and add then to the global env

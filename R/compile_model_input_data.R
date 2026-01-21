@@ -28,14 +28,20 @@ compile_model_input_data <- function() {
   df_census_0_4_rota <- left_join(df_census_0_4, cdc_child_vax_view_rotavirus_df, by = c("state_name" = "state_name")) # Add on rotavirus vaccine coverage data
   df_census_0_4_rota_w_model_input_params <- left_join(df_census_0_4_rota, model_input_parameters_df, by = c("vaccine" = "vaccine")) %>% select(-ends_with("_source")) %>% filter(disease == 'Rotavirus') # add on model input parameters for rotavirus
   
+  # Create PCV data table
+  df_census_0_4_pcv <- left_join(df_census_0_4, cdc_child_vax_view_pcv_df, by = c("state_name" = "state_name")) # Add on PCV vaccine coverage data
+  df_census_0_4_pcv_w_model_input_params <- left_join(df_census_0_4_pcv, model_input_parameters_df, by = c("vaccine" = "vaccine")) %>% select(-ends_with("_source")) %>% filter(disease == 'Pneumococcal') # add on model input parameters for PCV
+  
   # Create pertussis data table
   df_census <- left_join(census_acs_states_df, census_acs_state_population_df %>% select(-state_name), by = c("state_fips_code" = "state_fips_code"))
   df_census_0_14 <- left_join(df_census, census_acs_state_population_0_14_years_df %>% select(-state_name), by = c("state_fips_code" = "state_fips_code")) # join on state population 0-14 years from census
   df_census_0_14_dtap <- left_join(df_census_0_14, cdc_school_vax_view_dtap_df, by = c("state_name" = "state_name")) %>% mutate(vaccine_coverage_estimate = as.numeric(vaccine_coverage_estimate)) # Add on DTaP vaccine coverage data
   df_census_0_14_dtap_w_model_input_params <- left_join(df_census_0_14_dtap, model_input_parameters_df, by = c("vaccine" = "vaccine")) %>% select(-ends_with("_source")) %>% filter(disease == 'Pertussis') # add on model input parameters for pertussis
   
-  # Union rotavirus and pertussis data to create the start of the model input data frame
-  df_model_input_data <- union(df_census_0_4_rota_w_model_input_params,df_census_0_14_dtap_w_model_input_params)
+  # Union rotavirus, PCV, and pertussis data to create the start of the model input data frame
+  df_model_input_data <- union(df_census_0_4_rota_w_model_input_params,
+                               df_census_0_4_pcv_w_model_input_params,
+                               df_census_0_14_dtap_w_model_input_params)
   
   # Next, add rows for declining vaccination coverage among births, ranging from 0 to 100%, and 1 to 5 years as the time horizons of interest
   declining_coverage_among_new_births <- 0:20 # Create vector 0 to 20
@@ -58,6 +64,8 @@ compile_model_input_data <- function() {
                                                                           waning_rate_annual,
                                                                           basic_reproduction_number,
                                                                           observed_national_cases,
+                                                                          observed_national_hospitalizations,
+                                                                          observed_national_deaths,
                                                                           duration_infectious_days,
                                                                           duration_sick_days,
                                                                           cost_wage_daily,

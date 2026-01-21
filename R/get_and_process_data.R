@@ -37,6 +37,11 @@ get_and_process_data <- function() {
   source(read_path_process_data_cdc_child_vax_view_rotavirus_r)
   process_data_cdc_child_vax_view_rotavirus()
   
+  # process_data_cdc_child_vax_view_pcv.R
+  read_path_process_data_cdc_child_vax_view_pcv_r <- here("R/process_data_cdc_child_vax_view_pcv.R")
+  source(read_path_process_data_cdc_child_vax_view_pcv_r)
+  process_data_cdc_child_vax_view_pcv()
+  
   # process_data_cdc_school_vax_view_dtap.R
   read_path_process_data_cdc_school_vax_view_dtap_r <- here("R/process_data_cdc_school_vax_view_dtap.R")
   source(read_path_process_data_cdc_school_vax_view_dtap_r)
