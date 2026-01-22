@@ -22,7 +22,8 @@ get_data_census_acs_states <- function() {
               ) %>% 
               select(GEOID, NAME) %>% 
               rename(state_fips_code = GEOID,
-                     state_name = NAME)
+                     state_name = NAME) %>%
+              filter(!state_fips_code=='72')
   
   # Get nation data from Census ACS
   df_nation <- suppressMessages(
