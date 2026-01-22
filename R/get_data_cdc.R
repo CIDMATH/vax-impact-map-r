@@ -17,12 +17,12 @@ get_data_cdc <- function() {
   # --------------------------------------------------------------------------
   
   # get_data_cdc_child_vax_view.R
-  read_path_get_data_cdc_child_vax_view_r <- here("R/get_data_cdc_child_vax_view.R")
+  read_path_get_data_cdc_child_vax_view_r <- here("R/get_data_cdc_child_vax_view.r")
   source(read_path_get_data_cdc_child_vax_view_r)
   get_data_cdc_child_vax_view()
   
   # get_data_cdc_school_vax_view.R
-  read_path_get_data_cdc_school_vax_view_r <- here("R/get_data_cdc_school_vax_view.R")
+  read_path_get_data_cdc_school_vax_view_r <- here("R/get_data_cdc_school_vax_view.r")
   source(read_path_get_data_cdc_school_vax_view_r)
   get_data_cdc_school_vax_view()
 

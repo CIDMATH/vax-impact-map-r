@@ -1,0 +1,10 @@
+name: vax-impact-map-r
+title:
+username: cvanmeter
+account: cvanmeter
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 16488994
+bundleId: 11481192
+url: https://cvanmeter.shinyapps.io/vax-impact-map-r/
+version: 1

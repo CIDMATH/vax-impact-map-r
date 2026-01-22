@@ -4,12 +4,13 @@
 # Install & load required libraries
 # --------------------------------------------------------------------------
 packages <- c("tidyverse","here","shiny","maps","mapproj","plotly")
-install.packages(setdiff(packages, rownames(installed.packages())))
+# install.packages(setdiff(packages, rownames(installed.packages())))
 invisible(lapply(packages, library, character.only = TRUE))
 
 # Set file location relative to current project
 # --------------------------------------------------------------------------
 suppressMessages(here::i_am("app.R"))
+shiny::addResourcePath("www", here::here("www"))
 
 # Load the data
 
@@ -100,7 +101,7 @@ ui <- fluidPage(
              style = "text-align: center; color: #888; font-size: 12px; margin-top: 5px;"),
       
       div(style = "text-align: center; margin-top: 20px; margin-bottom: 20px;",
-          img(src = "logo_emory_cidmath_dark_blue_2_no-tagline.svg", 
+          img(src = "www/logo_emory_cidmath_dark_blue_2_no-tagline.svg",
               height = "60px")
       ),
       
