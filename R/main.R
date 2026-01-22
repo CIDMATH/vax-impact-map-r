@@ -26,6 +26,11 @@ main <- function() {
   source(read_path_run_model_r)
   run_model()
   
+  ## Curate model output
+  read_path_curate_model_output_r <- here("R/curate_model_output.R")
+  source(read_path_curate_model_output_r)
+  curate_model_output()
+  
 }
 
 main()

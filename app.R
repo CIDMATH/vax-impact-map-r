@@ -1,11 +1,21 @@
-library(shiny)
-library(tidyverse)
-library(maps)
-library(mapproj)
-library(plotly)
+# Shiny app to read data and generate data visualization for exploration 
+# --------------------------------------------------------------------------
+
+# Install & load required libraries
+# --------------------------------------------------------------------------
+packages <- c("tidyverse","here","shiny","maps","mapproj","plotly")
+install.packages(setdiff(packages, rownames(installed.packages())))
+invisible(lapply(packages, library, character.only = TRUE))
+
+# Set file location relative to current project
+# --------------------------------------------------------------------------
+suppressMessages(here::i_am("app.R"))
 
 # Load the data
-data <- read.csv("data/state_level_results_births_only.csv")
+
+# Get model output data from the vax_impact_map_model_output RDS in the `data` folder
+read_path_rds <- here("data/vax_impact_map_model_output_curated.rds")
+data <- readRDS(read_path_rds)
 
 ui <- fluidPage(
   tags$head(
@@ -49,21 +59,21 @@ ui <- fluidPage(
       
       selectInput("disease",
                   "Disease:",
-                  choices = unique(data$Disease),
-                  selected = unique(data$Disease)[1]),
+                  choices = unique(data$disease),
+                  selected = unique(data$disease)[1]),
       
       sliderInput("percent_decline",
                   "Coverage Decline:",
-                  min = min(data$Percent_Decline),
-                  max = max(data$Percent_Decline),
+                  min = min(data$percent_decline),
+                  max = max(data$percent_decline),
                   value = 10,
                   step = 1,
                   post = "%"),
       
-      selectInput("accrual_years",
+      selectInput("accrual_label",
                   "Years of lower coverage:",
-                  choices = unique(data$Accrual_Label),
-                  selected = unique(data$Accrual_Label)[1]),
+                  choices = unique(data$accrual_label),
+                  selected = unique(data$accrual_label)[1]),
       
       radioButtons("burden_type",
                    "Burden Type:",
@@ -200,18 +210,18 @@ server <- function(input, output, session) {
   
   # Reactive expression to determine which column to use
   metric_column <- reactive({
-    prefix <- if(input$burden_type == "additional") "Additional_" else ""
-    base_metric <- paste0(prefix, "Hospitalizations_Count")
+    prefix <- if(input$burden_type == "additional") "additional_" else ""
+    base_metric <- paste0(prefix, "hospitalizations")
     
     if (input$burden_type == "total") {
-      base_metric <- "Hospitalizations_Count"
+      base_metric <- "hospitalizations"
     }
     
     if (input$rate_or_count == "rate") {
       base_metric <- if(input$burden_type == "additional") {
-        "Additional_Hospitalizations_Count_per_100k"
+        "additional_hospitalizations_per_100k"
       } else {
-        "Hospitalizations_Count_per_100k"
+        "hospitalizations_per_100k"
       }
     }
     
@@ -222,11 +232,11 @@ server <- function(input, output, session) {
   filtered_data <- reactive({
     data %>%
       filter(
-        Disease == input$disease,
-        Percent_Decline == input$percent_decline,
-        Accrual_Label == input$accrual_years
+        disease == input$disease,
+        percent_decline == input$percent_decline,
+        accrual_label == input$accrual_label
       ) %>%
-      mutate(state_lower = tolower(State))
+      mutate(state_lower = tolower(state_name))
   })
   
   # Render the map
@@ -251,27 +261,27 @@ server <- function(input, output, session) {
         tooltip_text = if(input$burden_type == "additional") {
           paste0(
             "<b style='font-size:16px;'>", toupper(tools::toTitleCase(region)), "</b><br>",
-            "Baseline coverage: ", scales::percent(Baseline_Coverage, accuracy = 0.1), "<br>",
+            "Baseline coverage: ", scales::percent(baseline_coverage, accuracy = 0.1), "<br>",
             "<br>",
             "<b>HEALTH BURDEN</b>", "<br>",
-            "Additional Cases: ", scales::comma(Additional_Case_Count), "<br>",
-            "Additional Hospitalizations: ", scales::comma(Additional_Hospitalizations_Count), "<br>",
-            "Additional Deaths: ", round(Additional_Deaths_Count, 1), "<br>",
+            "Additional Cases: ", scales::comma(additional_cases), "<br>",
+            "Additional Hospitalizations: ", scales::comma(additional_hospitalizations), "<br>",
+            "Additional Deaths: ", round(additional_deaths, 1), "<br>",
             "<br>",
             "<b>ECONOMIC BURDEN</b>", "<br>",
-            "Additional Workdays Lost: ", scales::comma(Additional_Workdays_Lost), "<br>",
-            "Additional Productivity Costs: ", scales::dollar(round(Additional_Productivity_Cost / 100000) * 100000), "<br>",
-            "Additional Hospitalization Costs: ", scales::dollar(round(Additional_Hospitalization_Cost / 100000) * 100000), "<br>",
-            "Additional Total Costs: ", scales::dollar(round(Additional_Total_Cost / 100000) * 100000)
+            "Additional Workdays Lost: ", scales::comma(additional_workdays_lost), "<br>",
+            "Additional Productivity Costs: ", scales::dollar(round(additional_productivity_cost / 100000) * 100000), "<br>",
+            "Additional Hospitalization Costs: ", scales::dollar(round(additional_hospitalization_cost / 100000) * 100000), "<br>",
+            "Additional Total Costs: ", scales::dollar(round(additional_total_cost / 100000) * 100000)
           )
         } else {
           paste0(
             "<b style='font-size:16px;'>", toupper(tools::toTitleCase(region)), "</b><br>",
-            "Baseline coverage: ", scales::percent(Baseline_Coverage, accuracy = 0.1), "<br>",
+            "Baseline coverage: ", scales::percent(baseline_coverage, accuracy = 0.1), "<br>",
             "<br>",
-            "Total Cases: ", scales::comma(Case_Count), "<br>",
-            "Total Hospitalizations: ", scales::comma(Hospitalizations_Count), "<br>",
-            "Total Deaths: ", round(Deaths_Count, 1)
+            "Total Cases: ", scales::comma(cases), "<br>",
+            "Total Hospitalizations: ", scales::comma(hospitalizations), "<br>",
+            "Total Deaths: ", round(deaths, 1)
           )
         }
       ) %>%
