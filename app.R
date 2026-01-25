@@ -10,7 +10,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 # Set file location relative to current project
 # --------------------------------------------------------------------------
 suppressMessages(here::i_am("app.R"))
-shiny::addResourcePath("www", here::here("www"))
+shiny::addResourcePath("www", here::here("img"))
 
 # Load the data
 
