@@ -1,11 +1,18 @@
-# Shiny app to read data and generate data visualization for exploration 
+# Shiny app to read data and generate data visualization for exploration
 # --------------------------------------------------------------------------
 
 # Install & load required libraries
 # --------------------------------------------------------------------------
-packages <- c("tidyverse","here","shiny","tigris","sf","plotly","ggiraph")
+# packages <- c("tidyverse","here","shiny","tigris","sf","plotly","ggiraph")
 # install.packages(setdiff(packages, rownames(installed.packages())))
-invisible(lapply(packages, library, character.only = TRUE))
+# invisible(lapply(packages, library, character.only = TRUE))
+library(tidyverse)
+library(here)
+library(shiny)
+library(tigris)
+library(sf)
+library(plotly)
+library(ggiraph)
 
 # Set file location relative to current project
 # --------------------------------------------------------------------------
@@ -28,13 +35,13 @@ ui <- fluidPage(
       .plotly {
         min-height: 500px !important;
       }
-      
+
       @media (min-width: 769px) {
         .js-plotly-plot {
           height: 650px !important;
         }
       }
-      
+
       @media (max-width: 768px) {
         .sidebar-layout {
           flex-direction: column !important;
@@ -53,25 +60,26 @@ ui <- fluidPage(
       }
     "))
   ),
-  
+
   titlePanel(
     title = div(
       style = "display: flex; align-items: center;",
       img(src = "www/logo.png", height = 50, style = "margin-right: 15px;"),
-      h4("Quantifying the Health and Economic Costs of Declining Childhood Vaccination", 
-         style = "margin: 0; color: #555; flex: 1; text-align: center;")
+      h2("Quantifying the Health and Economic Costs of Declining Childhood Vaccination",
+         style = "margin: 0; color: #000; flex: 1; text-align: center; font-weight: bold; font-size: 20px;")
     )
   ),
-  
+
   sidebarLayout(
     sidebarPanel(
       width = 2,
-      
+      style = "margin-top: 55px;",
+
       selectInput("disease",
                   "Disease:",
                   choices = unique(data$disease),
                   selected = unique(data$disease)[1]),
-      
+
       sliderInput("percent_decline",
                   "Coverage Decline:",
                   min = min(data$percent_decline),
@@ -79,40 +87,86 @@ ui <- fluidPage(
                   value = 10,
                   step = 1,
                   post = "%"),
-      
+
       selectInput("accrual_label",
                   "Years of Lower Coverage:",
                   choices = unique(data$accrual_label),
                   selected = unique(data$accrual_label)[2]),
-      
+
       radioButtons("burden_type",
                    "Burden Type:",
                    choices = c("Additional" = "additional",
                                "Total" = "total"),
                    selected = "additional"),
-      
+
       radioButtons("rate_or_count",
                    "Display:",
                    choices = c("Counts" = "count",
                                "Rates (per 100k)" = "rate"),
                    selected = "count"),
-      
+
       hr(),
       actionButton("show_info", "About", icon = icon("info-circle"))
     ),
-    
+
     mainPanel(
       width = 10,
-      h4(textOutput("map_title"), 
-         style = "text-align: center; margin-bottom: 15px; color: #2C3E50;"),
-      girafeOutput("map", height = "700px"),
-      
+      h3(textOutput("map_title"),
+         style = "text-align: center; margin-bottom: 15px; color: #2C3E50; font-size: 18px;"),
+
+      # Summary Statistics Panel
+      div(
+        style = "margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);",
+        h4("National Impact Summary",
+           style = "color: white; margin-top: 0; margin-bottom: 15px; font-size: 16px; font-weight: bold;"),
+        fluidRow(
+          column(3,
+                 div(style = "background-color: rgba(255,255,255,0.95); padding: 12px; border-radius: 6px; text-align: center; height: 100%;",
+                     div(style = "font-size: 11px; color: #666; font-weight: 600; margin-bottom: 5px;",
+                         textOutput("summary_label_cases", inline = TRUE)),
+                     div(style = "font-size: 22px; font-weight: bold; color: #2C3E50;",
+                         textOutput("summary_cases", inline = TRUE))
+                 )
+          ),
+          column(3,
+                 div(style = "background-color: rgba(255,255,255,0.95); padding: 12px; border-radius: 6px; text-align: center; height: 100%;",
+                     div(style = "font-size: 11px; color: #666; font-weight: 600; margin-bottom: 5px;",
+                         textOutput("summary_label_hosp", inline = TRUE)),
+                     div(style = "font-size: 22px; font-weight: bold; color: #e74c3c;",
+                         textOutput("summary_hosp", inline = TRUE))
+                 )
+          ),
+          column(3,
+                 div(style = "background-color: rgba(255,255,255,0.95); padding: 12px; border-radius: 6px; text-align: center; height: 100%;",
+                     div(style = "font-size: 11px; color: #666; font-weight: 600; margin-bottom: 5px;",
+                         textOutput("summary_label_deaths", inline = TRUE)),
+                     div(style = "font-size: 22px; font-weight: bold; color: #c0392b;",
+                         textOutput("summary_deaths", inline = TRUE))
+                 )
+          ),
+          column(3,
+                 div(style = "background-color: rgba(255,255,255,0.95); padding: 12px; border-radius: 6px; text-align: center; height: 100%;",
+                     div(style = "font-size: 11px; color: #666; font-weight: 600; margin-bottom: 5px;",
+                         textOutput("summary_label_costs", inline = TRUE)),
+                     div(style = "font-size: 22px; font-weight: bold; color: #16a085;",
+                         textOutput("summary_costs", inline = TRUE))
+                 )
+          )
+        )
+      ),
+
+      div(
+        style = "border: 1px solid #ddd; border-radius: 5px; padding: 15px; background-color: white;",
+        girafeOutput("map", height = "700px")
+      ),
+
+
       # Mobile hint
-      tags$p("Hover over any state for details. Best viewed on desktop.", 
-             style = "text-align: center; color: #888; font-size: 12px; margin-top: 5px;"),
-      
+      tags$p("Hover over any state for details. Best viewed on desktop.",
+             style = "text-align: center; color: #888; font-size: 12px; margin-top: 0px;"),
+
       # hr(),
-      # 
+      #
       # div(style = "margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 5px;",
       #     h3("Using VaxImpact"),
       #     h4("How to navigate the tool:"),
@@ -131,30 +185,30 @@ ui <- fluidPage(
       #         <li><strong>Absolute numbers:</strong> Total projected cases, hospitalizations, and deaths (useful for understanding overall burden)</li>
       #       </ul>"))
       #     ),
-      #     
+      #
       #     h3("Understanding the Metrics", style = "margin-top: 30px;"),
       #     tags$dl(
       #       tags$dt(strong("Additional cases")),
       #       tags$dd("The projected annual increase in children with the disease, resulting from reduced vaccination of newborns."),
-      #       
+      #
       #       tags$dt(strong("Additional hospitalizations")),
       #       tags$dd("The number of additional cases severe enough to require inpatient hospital care."),
-      #       
+      #
       #       tags$dt(strong("Additional deaths")),
       #       tags$dd("Estimated annual increase in deaths attributable to the disease, based on historical case-fatality rates."),
-      #       
+      #
       #       tags$dt(strong("Additional days of work missed")),
       #       tags$dd("Projected increase in workdays lost annually as caregivers stay home to care for sick children."),
-      #       
+      #
       #       tags$dt(strong("Additional economic costs")),
       #       tags$dd("Combined annual costs in US dollars, including direct medical expenses (hospitalizations, treatments) and indirect costs (lost productivity from missed work).")
       #     ),
-      #     
+      #
       #     h3("Interpreting the Results", style = "margin-top: 30px;"),
       #     h4("What these projections represent:"),
       #     p("The estimates model the steady-state impact of sustained lower vaccination coverage—the annual disease burden expected once reduced immunization rates become established across the population. These are not outbreak scenarios or one-time events."),
       #     p("The model assumes coverage declines affect newborns beginning now, with impacts accumulating as these cohorts age through childhood. Results reflect long-term equilibrium conditions."),
-      #     
+      #
       #     h4("Key considerations:"),
       #     tags$ul(
       #       tags$li("Even modest coverage declines (5-10%) can produce substantial increases in disease burden, particularly in populous states or those with higher birth rates"),
@@ -162,12 +216,12 @@ ui <- fluidPage(
       #       tags$li("Declines are not evenly distributed—communities with lower vaccination rates experience disproportionate impacts"),
       #       tags$li("These projections use conservative assumptions; outbreaks could produce more severe short-term spikes")
       #     ),
-      #     
+      #
       #     h3("Methodology", style = "margin-top: 30px;"),
       #     p("VaxImpactMap uses simple analytical epidemiological models calibrated to current state-level vaccination coverage, birth rates, and disease surveillance data. The models are based on the idea that declines in coverage will only affect new births. Older children who were vaccinated as babies retain the immunity conferred by immunization. Therefore, gaps in immunity take time to accrue."),
       #     p("Disease parameters (transmission rates, severity, case-fatality ratios) are derived from CDC surveillance, published literature, and historical outbreak data. Economic costs include direct medical expenses and indirect productivity losses, calculated using standard health economics methods."),
       #     p(HTML("For detailed technical documentation, including data sources, model equations, parameter values, and validation procedures, see: <strong>VaxImpactMap Technical Methods</strong>")),
-      #     
+      #
       #     h3("Use Cases", style = "margin-top: 30px;"),
       #     p(strong("For public health departments:"), " Project disease resurgence in your state under different coverage scenarios to inform resource planning and intervention priorities."),
       #     p(strong("For journalists and media:"), " Access state-specific, evidence-based estimates to illustrate the concrete consequences of vaccine hesitancy for your audience."),
@@ -178,35 +232,35 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  
+
   # Show modal dialog on startup
   showModal(modalDialog(
     title = "Welcome to VaxImpactMap",
     HTML("
       <p>Childhood vaccination rates in the United States have declined in recent years. Growing confusion about vaccine safety and changes to public health guidance may accelerate these declines, putting more children at risk for preventable diseases.</p>
-      
+
       <p>VaxImpactMap is an interactive tool that projects the real-world consequences of reduced vaccine coverage. Using epidemiological models and state-level data, it estimates the additional disease burden—cases, hospitalizations, deaths, missed workdays, and healthcare costs—that would result from specific declines in immunization coverage.</p>
-      
+
       <p>This tool is designed for public health officials, policymakers, journalists, and parents who need evidence-based projections to inform decisions, communicate risks, and support vaccination programs.</p>
-      
+
       <p><strong>Explore VaxImpactMap to see how coverage declines translate into health and economic impacts in your state.</strong></p>
     "),
     size = "l",
     easyClose = TRUE,
     footer = modalButton("Get Started")
   ))
-  
+
   # Allow users to re-open the info dialog
   observeEvent(input$show_info, {
     showModal(modalDialog(
       title = "About VaxImpactMap",
       HTML("
         <p>Childhood vaccination rates in the United States have declined in recent years. Growing confusion about vaccine safety and changes to public health guidance may accelerate these declines, putting more children at risk for preventable diseases.</p>
-        
+
         <p>VaxImpact is an interactive tool that projects the real-world consequences of reduced vaccine coverage. Using epidemiological models and state-level data, it estimates the additional disease burden—cases, hospitalizations, deaths, missed workdays, and healthcare costs—that would result from specific declines in immunization coverage.</p>
-        
+
         <p>This tool is designed for public health officials, policymakers, journalists, and parents who need evidence-based projections to inform decisions, communicate risks, and support vaccination programs.</p>
-        
+
         <p><strong>Explore VaxImpact to see how coverage declines translate into health and economic impacts in your state.</strong></p>
       "),
       size = "l",
@@ -214,16 +268,16 @@ server <- function(input, output, session) {
       footer = modalButton("Close")
     ))
   })
-  
+
   # Reactive expression to determine which column to use
   metric_column <- reactive({
     prefix <- if(input$burden_type == "additional") "additional_" else ""
     base_metric <- paste0(prefix, "hospitalizations")
-    
+
     if (input$burden_type == "total") {
       base_metric <- "hospitalizations"
     }
-    
+
     if (input$rate_or_count == "rate") {
       base_metric <- if(input$burden_type == "additional") {
         "additional_hospitalizations_per_100k"
@@ -231,10 +285,10 @@ server <- function(input, output, session) {
         "hospitalizations_per_100k"
       }
     }
-    
+
     return(base_metric)
   })
-  
+
   # Filter data based on inputs
   filtered_data <- reactive({
     data %>%
@@ -245,29 +299,126 @@ server <- function(input, output, session) {
       ) %>%
       mutate(state_lower = tolower(state_name))
   })
-  
+
   # Add map title
   output$map_title <- renderText({
     paste0("Annual ", input$disease, " Burden Resulting From ",
           input$accrual_label, " of ",
           input$percent_decline, "% Decline From Current Coverage", sep="")
   })
-  
+
+  # Get US-level summary data
+  us_summary <- reactive({
+    data %>%
+      filter(
+        disease == input$disease,
+        percent_decline == input$percent_decline,
+        accrual_label == input$accrual_label,
+        state_name == "United States"
+      )
+  })
+
+  # Summary statistics labels
+  output$summary_label_cases <- renderText({
+    if(input$burden_type == "additional") {
+      if(input$rate_or_count == "count") "ADDITIONAL CASES" else "ADDITIONAL CASES PER 100K"
+    } else {
+      if(input$rate_or_count == "count") "TOTAL CASES" else "TOTAL CASES PER 100K"
+    }
+  })
+
+  output$summary_label_hosp <- renderText({
+    if(input$burden_type == "additional") {
+      if(input$rate_or_count == "count") "ADDITIONAL HOSPITALIZATIONS" else "ADDITIONAL HOSP. PER 100K"
+    } else {
+      if(input$rate_or_count == "count") "TOTAL HOSPITALIZATIONS" else "TOTAL HOSP. PER 100K"
+    }
+  })
+
+  output$summary_label_deaths <- renderText({
+    if(input$burden_type == "additional") {
+      if(input$rate_or_count == "count") "ADDITIONAL DEATHS" else "ADDITIONAL DEATHS PER 100K"
+    } else {
+      if(input$rate_or_count == "count") "TOTAL DEATHS" else "TOTAL DEATHS PER 100K"
+    }
+  })
+
+  output$summary_label_costs <- renderText({
+    if(input$burden_type == "additional") {
+      if(input$rate_or_count == "count") "ADDITIONAL COSTS" else "ADDITIONAL COSTS PER 100K"
+    } else {
+      if(input$rate_or_count == "count") "TOTAL COSTS" else "TOTAL COSTS PER 100K"
+    }
+  })
+
+  # Summary statistics values
+  output$summary_cases <- renderText({
+    us_data <- us_summary()
+    if(nrow(us_data) == 0) return("N/A")
+
+    value <- if(input$burden_type == "additional") {
+      if(input$rate_or_count == "count") us_data$additional_cases else us_data$additional_cases_per_100k
+    } else {
+      if(input$rate_or_count == "count") us_data$cases else us_data$cases_per_100k
+    }
+
+    scales::comma(round(value))
+  })
+
+  output$summary_hosp <- renderText({
+    us_data <- us_summary()
+    if(nrow(us_data) == 0) return("N/A")
+
+    value <- if(input$burden_type == "additional") {
+      if(input$rate_or_count == "count") us_data$additional_hospitalizations else us_data$additional_hospitalizations_per_100k
+    } else {
+      if(input$rate_or_count == "count") us_data$hospitalizations else us_data$hospitalizations_per_100k
+    }
+
+    scales::comma(round(value))
+  })
+
+  output$summary_deaths <- renderText({
+    us_data <- us_summary()
+    if(nrow(us_data) == 0) return("N/A")
+
+    value <- if(input$burden_type == "additional") {
+      if(input$rate_or_count == "count") us_data$additional_deaths else us_data$additional_deaths_per_100k
+    } else {
+      if(input$rate_or_count == "count") us_data$deaths else us_data$deaths_per_100k
+    }
+
+    scales::comma(round(value, 1))
+  })
+
+  output$summary_costs <- renderText({
+    us_data <- us_summary()
+    if(nrow(us_data) == 0) return("N/A")
+
+    value <- if(input$burden_type == "additional") {
+      if(input$rate_or_count == "count") us_data$additional_total_cost else us_data$additional_total_cost_per_100k
+    } else {
+      if(input$rate_or_count == "count") us_data$total_cost else us_data$total_cost_per_100k
+    }
+
+    scales::dollar(round(value / 1000000) * 1000000)
+  })
+
   # Render the map
   output$map <- renderGirafe({
     # Get map data
     us_states <- tigris_states
-    
+
     # Get filtered state data
     state_data <- filtered_data()
-    
+
     # Join map with data
     plot_data <- us_states %>%
       left_join(state_data, by = c("NAME" = "state_name"))
-    
+
     # Get the metric value for coloring
     metric_col <- metric_column()
-    
+
     # Calculate global max for this metric across ALL percent_decline values
     # but filtering by disease, accrual_label
     global_max <- data %>%
@@ -278,7 +429,7 @@ server <- function(input, output, session) {
       ) %>%
       pull(!!sym(metric_col)) %>%
       max(na.rm = TRUE)
-    
+
     # Create tooltip text
     plot_data <- plot_data %>%
       group_by(NAME) %>%
@@ -354,23 +505,23 @@ server <- function(input, output, session) {
         }
       ) %>%
       ungroup()
-    
+
     # Build legend title
     burden_label <- if(input$burden_type == "additional") "Additional " else "Total "
     rate_label <- if(input$rate_or_count == "rate") " per 100k" else ""
     legend_name <- paste0(burden_label, "Hospitalizations", rate_label)
-    
+
     # Create the plot with interactive geom
     p <- ggplot(plot_data) +
       geom_sf_interactive(
-        aes(fill = .data[[metric_col]], 
+        aes(fill = .data[[metric_col]],
             tooltip = tooltip_text,
             data_id = NAME),
         color = "black",
         linewidth = 0.2
       ) +
       scale_fill_gradient(
-        low = "#ffffcc", 
+        low = "#ffffcc",
         high = "#800026",
         name = legend_name,
         labels = scales::comma,
@@ -386,7 +537,7 @@ server <- function(input, output, session) {
         plot.background = element_blank()
       ) +
       guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5))
-    
+
     # Render as interactive girafe object
     girafe(
       ggobj = p,
