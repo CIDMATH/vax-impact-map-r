@@ -4,7 +4,7 @@ get_data <- function() {
   
   # Install & load required libraries
   # --------------------------------------------------------------------------
-  packages <- c("tidycensus","tidyverse","here")
+  packages <- c("tidycensus","tidyverse","here","tigris","sf")
   install.packages(setdiff(packages, rownames(installed.packages())))
   invisible(lapply(packages, library, character.only = TRUE))
   
@@ -27,8 +27,13 @@ get_data <- function() {
   get_data_census()
   
   # Get model input parameter data
-  read_path_get_data_model_input_parameters <- here("R/get_data_model_input_parameters.R")
-  source(read_path_get_data_model_input_parameters)
+  read_path_get_data_model_input_parameters_r <- here("R/get_data_model_input_parameters.R")
+  source(read_path_get_data_model_input_parameters_r)
   get_data_model_input_parameters()
+  
+  # Get tigris state data
+  read_path_get_data_tigris_states <- here("R/get_data_tigris_states.R")
+  source(read_path_get_data_tigris_states)
+  get_data_tigris_states()
 
 }

@@ -54,6 +54,12 @@ read_data <- function() {
   read_path_model_input_parameters_rds <- here("data-raw/model_input_parameters.rds")
   model_input_parameters_df <- readRDS(read_path_model_input_parameters_rds)
   
+  ## Tigris state geography
+  
+  # Read tigris_states.rds from the project `data-raw` folder
+  read_path_tigris_states_rds <- here("data-raw/tigris_states.rds")
+  tigris_states_df <- readRDS(read_path_tigris_states_rds)
+  
   ## Create list of dataframes to return
   data_frames_list <- list(census_acs_states_df = census_acs_states_df,
                            census_acs_state_population_df=census_acs_state_population_df,
@@ -62,7 +68,8 @@ read_data <- function() {
                            cdc_school_vax_view_dtap_df=cdc_school_vax_view_dtap_df,
                            cdc_child_vax_view_rotavirus_df=cdc_child_vax_view_rotavirus_df,
                            cdc_child_vax_view_pcv_df=cdc_child_vax_view_pcv_df,
-                           model_input_parameters_df=model_input_parameters_df)
+                           model_input_parameters_df=model_input_parameters_df,
+                           tigris_states_df=tigris_states_df)
   
   ## Get dataframes from list and add then to the global env
   list2env(data_frames_list, envir=.GlobalEnv)

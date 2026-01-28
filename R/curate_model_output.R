@@ -29,6 +29,8 @@ curate_model_output <- function() {
                baseline_coverage = vaccine_coverage_estimate) %>%
         select(disease,
                state_name,
+               age_group,
+               age_group_population,
                percent_decline,
                accrual_years,
                accrual_label,
