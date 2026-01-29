@@ -82,8 +82,8 @@ ui <- fluidPage(
 
       sliderInput("percent_decline",
                   "Coverage Decline:",
-                  min = min(data$percent_decline),
-                  max = max(data$percent_decline),
+                  min = 0,
+                  max = 20,
                   value = 10,
                   step = 1,
                   post = "%"),
@@ -294,7 +294,7 @@ server <- function(input, output, session) {
     data %>%
       filter(
         disease == input$disease,
-        percent_decline == input$percent_decline,
+        percent_decline == as.character(input$percent_decline),
         accrual_label == input$accrual_label
       ) %>%
       mutate(state_lower = tolower(state_name))
@@ -304,7 +304,7 @@ server <- function(input, output, session) {
   output$map_title <- renderText({
     paste0("Annual ", input$disease, " Burden Resulting From ",
           input$accrual_label, " of ",
-          input$percent_decline, "% Decline From Current Coverage", sep="")
+          as.character(input$percent_decline), "% Decline From Current Coverage", sep="")
   })
 
   # Get US-level summary data
@@ -312,7 +312,7 @@ server <- function(input, output, session) {
     data %>%
       filter(
         disease == input$disease,
-        percent_decline == input$percent_decline,
+        percent_decline == as.character(input$percent_decline),
         accrual_label == input$accrual_label,
         state_name == "United States"
       )
