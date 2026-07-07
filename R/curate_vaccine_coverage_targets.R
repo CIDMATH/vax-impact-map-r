@@ -97,12 +97,12 @@ curate_vaccine_coverage_targets <- function() {
 
   # Write data as a csv to the project `data/csv` folder
   # --------------------------------------------------------------------------
-  write_path_csv <- here("data/csv/vax_impact_map_vaccine_coverage_targets.csv")
+  write_path_csv <- here("data/csv/disease_metadata.csv")
   write.csv(targets, file = write_path_csv, row.names = FALSE)
 
   # Write data as a rds to the project `data` folder
   # --------------------------------------------------------------------------
-  write_path_rds <- here("data/vax_impact_map_vaccine_coverage_targets.rds")
+  write_path_rds <- here("data/disease_metadata.rds")
   saveRDS(targets, file = write_path_rds)
 
   # Return the dataset invisibly for interactive use
