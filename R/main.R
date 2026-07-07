@@ -30,7 +30,12 @@ main <- function() {
   read_path_curate_model_output_r <- here("R/curate_model_output.R")
   source(read_path_curate_model_output_r)
   curate_model_output()
-  
+
+  ## Curate disease-level vaccine coverage targets (reference dataset)
+  read_path_curate_vaccine_coverage_targets_r <- here("R/curate_vaccine_coverage_targets.R")
+  source(read_path_curate_vaccine_coverage_targets_r)
+  curate_vaccine_coverage_targets()
+
 }
 
 main()
