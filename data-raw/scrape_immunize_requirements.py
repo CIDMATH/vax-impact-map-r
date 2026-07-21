@@ -96,6 +96,9 @@ JURIS = {"Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connec
 EXTRA = {"New York City", "Puerto Rico", "Guam", "U.S. Virgin Islands"}
 ALLJ = JURIS | EXTRA
 REQ = {"requirement?", "required?"}
+# Sub-state jurisdictions to drop from the requirements outputs (the app works at
+# the state level; Immunize.org lists these separately). Exemptions are unaffected.
+JURIS_EXCLUDE = {"New York City"}
 
 
 def clean(x: str) -> str:
@@ -149,6 +152,8 @@ def parse_table(table, slug, vaccine, url):
     for g in grid[data_start:]:
         juris = clean(g[0])
         if not juris or juris.lower() in REQ or juris == "Jurisdiction":
+            continue
+        if juris in JURIS_EXCLUDE:
             continue
         vals = g[1:]
         off = len(colmap) - len(vals)

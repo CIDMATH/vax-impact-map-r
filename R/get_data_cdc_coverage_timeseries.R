@@ -49,7 +49,7 @@ get_data_cdc_coverage_timeseries <- function(child_min_birth_year = 2019,
     "Guam",
     "IL-City of Chicago", "IL-Rest of state",
     "NY-City of New York", "NY-Rest of state",
-    "PA-Philadelphia", "PA-Rest of state",
+    "PA-Philadelphia", "PA-Rest of state", "Puerto Rico",
     "TX-Bexar County", "TX-City of Houston", "TX-Dallas County",
     "TX-El Paso County", "TX-Hidalgo County", "TX-Rest of state",
     "TX-Tarrant County", "TX-Travis County",
@@ -57,7 +57,7 @@ get_data_cdc_coverage_timeseries <- function(child_min_birth_year = 2019,
     "Region 1", "Region 2", "Region 3", "Region 4", "Region 5",
     "Region 6", "Region 7", "Region 8", "Region 9", "Region 10"
   )
-  school_geo_exclude <- c("NY-City of New York", "TX-City of Houston", "U.S. Median")
+  school_geo_exclude <- c("NY-City of New York", "TX-City of Houston", "TX-City of San Antonio", "U.S. Median")
 
   # --------------------------------------------------------------------------
   # 1. SOURCE raw data
@@ -85,7 +85,7 @@ get_data_cdc_coverage_timeseries <- function(child_min_birth_year = 2019,
   # 2. PROCESS child antigens, RETAINING the birth-cohort year as the time axis
   #    Keep single-year birth cohorts only (drop rolling ranges like "2019-2020").
   # --------------------------------------------------------------------------
-  process_child <- function(df, vaccine_value, dimension_value, dose_value = NULL) {
+  process_child <- function(df, disease_value, vaccine_value, dimension_value, dose_value = NULL) {
     out <- df %>%
       filter(
         Vaccine == vaccine_value,
@@ -100,6 +100,7 @@ get_data_cdc_coverage_timeseries <- function(child_min_birth_year = 2019,
     out %>%
       transmute(
         source       = "child_vax_view",
+        disease      = disease_value,
         vaccine      = Vaccine,
         state_name   = Geography,
         year         = suppressWarnings(as.integer(Birth.Year.Birth.Cohort)),
@@ -111,13 +112,13 @@ get_data_cdc_coverage_timeseries <- function(child_min_birth_year = 2019,
       arrange(state_name, year)
   }
 
-  df_rotavirus <- process_child(df_child, "Rotavirus", "8 Months")
-  df_pcv       <- process_child(df_child, "PCV", "35 Months", dose_value = "≥4 Doses")
+  df_rotavirus <- process_child(df_child, "Rotavirus", "Rotavirus", "8 Months")
+  df_pcv       <- process_child(df_child, "Pneumococcal", "PCV", "35 Months", dose_value = "≥4 Doses")
 
   # --------------------------------------------------------------------------
   # 3. PROCESS school DTaP, RETAINING school year as the time axis
   # --------------------------------------------------------------------------
-  process_school <- function(df, vaccine_value) {
+  process_school <- function(df, disease_value, vaccine_value) {
     df %>%
       filter(
         Vaccine.Exemption == vaccine_value,
@@ -127,6 +128,7 @@ get_data_cdc_coverage_timeseries <- function(child_min_birth_year = 2019,
       ) %>%
       transmute(
         source       = "school_vax_view",
+        disease      = disease_value,
         vaccine      = Vaccine.Exemption,
         state_name   = Geography,
         year         = suppressWarnings(as.integer(substr(School.Year, 1, 4))),
@@ -139,7 +141,7 @@ get_data_cdc_coverage_timeseries <- function(child_min_birth_year = 2019,
       arrange(state_name, year)
   }
 
-  df_dtap <- process_school(df_school, "DTP, DTaP, or DT")
+  df_dtap <- process_school(df_school, "Pertussis", "DTP, DTaP, or DT")
 
   # --------------------------------------------------------------------------
   # 4. Combined tidy long series across all antigens
