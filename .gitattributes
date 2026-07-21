@@ -1,0 +1,48 @@
+# Normalize line endings across platforms.
+# Store all text as LF in the repo; check out as LF so Windows autocrlf
+# can't re-churn the whole tree. Binary types are marked explicitly so git
+# never modifies them.
+
+# Default: detect text vs binary, and force LF for text on checkout.
+* text=auto eol=lf
+
+# --- Explicit text types (LF) ---
+*.R      text eol=lf
+*.r      text eol=lf
+*.Rmd    text eol=lf
+*.Rproj  text eol=lf
+*.py     text eol=lf
+*.csv    text eol=lf
+*.tsv    text eol=lf
+*.md     text eol=lf
+*.txt    text eol=lf
+*.json   text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.html   text eol=lf
+*.css    text eol=lf
+*.js     text eol=lf
+*.sql    text eol=lf
+*.dcf    text eol=lf
+.gitattributes text eol=lf
+.gitignore     text eol=lf
+
+# --- Binary types (never modified) ---
+*.rds    binary
+*.RData  binary
+*.rda    binary
+*.pyc    binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.pdf    binary
+*.xlsx   binary
+*.xls    binary
+*.zip    binary
+*.gz     binary
+*.parquet binary
+*.shp    binary
+*.dbf    binary
+*.shx    binary
