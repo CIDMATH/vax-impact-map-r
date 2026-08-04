@@ -38,7 +38,16 @@ compute_ee_incidence <- function(df) {
   # rel = 0.5 * (core + sqrt(core^2 + 4*delta)); with delta = 0 this equals pmax(core, 0),
   # so all diseases with importation_delta = 0 are unchanged.
   # --------------------------------------------------------------------------
-  importation_delta = df$importation_delta
+  # importation_delta is optional. It is retained only for the equilibrium
+  # diseases (rotavirus, PCV, pertussis), where it is 0 and the smoothing is a
+  # no-op. Hib and Varicella are handled by the age-structured producers and are
+  # not in this data frame. If the column has been removed from the parameter
+  # file, default to 0 so the equilibrium path is unaffected.
+  importation_delta = if ("importation_delta" %in% names(df)) {
+    ifelse(is.na(df$importation_delta), 0, df$importation_delta)
+  } else {
+    0
+  }
   ee_incidence_rel = 0.5 * (ee_incidence_core + sqrt(ee_incidence_core^2 + 4 * importation_delta))
   
   # If SIR, then incidence_rate_annual is annual_turnover_rate * ee_incidence_rel

@@ -42,15 +42,20 @@ compile_model_input_data <- function() {
   df_census_0_19_varicella <- left_join(df_census_0_19, cdc_school_vax_view_varicella_df, by = c("state_name" = "state_name")) %>% mutate(vaccine_coverage_estimate = as.numeric(vaccine_coverage_estimate))
   df_census_0_19_varicella_w_model_input_params <- left_join(df_census_0_19_varicella, model_input_parameters_df, by = c("vaccine" = "vaccine")) %>% select(-ends_with("_source")) %>% filter(disease == 'Varicella')
   
-  # Union rotavirus, PCV, pertussis, and varicella data to create the start of the model input data frame
+  # Union rotavirus, PCV, and pertussis to create the start of the model input
+  # data frame. NOTE: Hib and Varicella are intentionally EXCLUDED here - they
+  # are now produced by the age-structured producers (produce_hib_output /
+  # produce_varicella_output) and merged in combine_model_output(). Their block
+  # definitions above are retained but unused so the equilibrium path never
+  # double-counts them (and does not choke on their age-structured parameters).
   df_model_input_data <- union(df_census_0_4_rota_w_model_input_params,
                                df_census_0_4_pcv_w_model_input_params) %>%
-                         union(df_census_0_14_dtap_w_model_input_params) %>%
-                         union(df_census_0_19_varicella_w_model_input_params) %>%
-                         union(df_census_0_4_hib_w_model_input_params)
+                         union(df_census_0_14_dtap_w_model_input_params)
   
-  # Next, add rows for declining vaccination coverage among births, ranging from 0 to 100%, and 1 to 5 years as the time horizons of interest
-  declining_coverage_among_new_births <- 0:20 # Create vector 0 to 20
+  # Next, add rows for declining vaccination coverage among births. We report the
+  # five scenarios used in the map (0, 5, 10, 15, 20 percentage-point declines);
+  # the age-structured producers use the matching proportions c(0,.05,.10,.15,.20).
+  declining_coverage_among_new_births <- c(0, 5, 10, 15, 20)
   time_horizon <- c(1, 5, 10, 20) # accrual horizons of interest (years)
   df_model_input_data_expanded <- df_model_input_data %>% crossing(declining_coverage_among_new_births, time_horizon)
   
@@ -81,7 +86,7 @@ compile_model_input_data <- function() {
                                                                           death_rate,
                                                                           model_type,,
                                                                           severe_adverse_event_rate,
-                                                                          importation_delta
+                                                                          external_foi_annual
                                                                             )                                                                          
   
   # Perform minor reformatting to convert vaccine coverage data to percentages
