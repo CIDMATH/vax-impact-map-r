@@ -1,6 +1,6 @@
 # Varicella: age-structured model, n groups, per-state solve
 # =============================================================================
-# CALIBRATION STRATEGY
+# CALIBRATION STRATEGY (changed)
 # -----------------------------------------------------------------------------
 # Age-specific hospitalisation probability h is calibrated on the PREVACCINE era,
 # not the current era. The reason is identification: prevaccine, essentially
@@ -32,7 +32,7 @@
 # (not incidental varicella, which Marin also excludes), and 2023 probably
 # includes post-pandemic catch-up transmission, so it is not a steady-state year.
 #
-# Some limitations:
+# WHAT THIS DOES NOT FIX - state these in the methods
 #  1. CASES ARE OVERSTATED, roughly twofold. The model gives a 92.9% incidence
 #     decline against an observed ~97% (CDC Pink Book, NNDSS, four states). The
 #     hospitalisation level is nonetheless right because prevaccine wild-type h is
@@ -209,7 +209,13 @@ vzv_prevax_targets <- function(edges, N, ppv_50plus = 1) {
 # -----------------------------------------------------------------------------
 vzv_build_model <- function(C, N, first_band_years, labels = colnames(C),
                             R0_pop = 8.5, ve_infection = 0.92,
-                            duration_infectious_days = 7, symmetrise = TRUE) {
+                            duration_infectious_days = 7, symmetrise = TRUE,
+                            external_foi_annual) {
+  if (missing(external_foi_annual) || length(external_foi_annual) != 1 ||
+      is.na(external_foi_annual)) {
+    stop("vzv_build_model(): external_foi_annual (mean external importation FOI) ",
+         "must be supplied explicitly; there is no default.")
+  }
   n <- length(N)
   if (!all(dim(C) == n)) stop("Contact matrix dimension does not match length(N).")
   gamma <- 365 / duration_infectious_days
@@ -223,18 +229,42 @@ vzv_build_model <- function(C, N, first_band_years, labels = colnames(C),
   births <- N[1] * mu[1]
   K <- matrix(0, n, n)
   for (i in seq_len(n)) for (j in seq_len(n)) K[i, j] <- Cy[j, i] / (gamma + mu[j])
-  q <- R0_pop / max(abs(eigen(K)$values))
+  eg <- eigen(K)
+  dom <- which.max(abs(eg$values))
+  q <- R0_pop / abs(eg$values[dom])
+
+  # Age-patterned external importation FOI. A flat external hazard falls equally on
+  # every band, but vaccination shifts the standing susceptible pool into ADULTHOOD
+  # (which carries the high hospitalisation probability), so a flat term over-
+  # allocates imported burden to adults. Instead the external hazard is distributed
+  # across ages in proportion to the force of infection induced by the natural (NGM
+  # dominant eigenvector) infection age-distribution - i.e. where exposure naturally
+  # concentrates (children). The pattern is coverage-independent and normalised to a
+  # population-weighted mean of 1, so external_foi_annual remains the MEAN external
+  # hazard while its allocation across ages is realistic.
+  infdist <- abs(Re(eg$vectors[, dom]))
+  expo    <- as.numeric(Cy %*% (infdist / sum(infdist)))
+  eps_pattern <- expo / (sum(N * expo) / sum(N))   # population-weighted mean = 1
+  epsilon <- external_foi_annual * eps_pattern      # length-n vector
+
   list(n = n, labels = labels, N = N, C = Cy, mu = mu, births = births,
        gamma = gamma, q = q, ve = ve_infection, R0_pop = R0_pop,
        first_band_years = first_band_years,
-       threshold_coverage = (1 - 1 / R0_pop) / ve_infection)
+       threshold_coverage = (1 - 1 / R0_pop) / ve_infection,
+       # Age-patterned external importation FOI (per-capita annual, vector by band).
+       # external_foi_mean is the population-weighted mean hazard; epsilon spreads it
+       # across ages via the natural-exposure pattern above. Keeps a small endemic
+       # floor under above-threshold states and seeds realistic re-emergence when a
+       # decline pushes R_eff > 1, without over-loading the adult bands. Negligible
+       # at pre-vaccine endemicity, so it does not disturb the h-calibration.
+       epsilon = epsilon, external_foi_mean = external_foi_annual)
 }
 
 
 # -----------------------------------------------------------------------------
 # 4. Equilibrium and dynamics
 # -----------------------------------------------------------------------------
-vzv_foi <- function(mod, prev) as.numeric(mod$q * (mod$C %*% prev))
+vzv_foi <- function(mod, prev) as.numeric(mod$q * (mod$C %*% prev) + mod$epsilon)
 
 vzv_cascade <- function(mod, lam, coverage) {
   n <- mod$n
@@ -481,13 +511,23 @@ run_varicella_agestructured <- function(coverage_df, pop_df, params,
     if (nrow(p) != length(labs) || any(is.na(p$age_group_population))) return(NULL)
     p$age_group_population
   }
+  # External importation FOI (mean per-capita annual hazard). REQUIRED - no silent
+  # default, so this importation assumption is always an explicit, auditable choice
+  # in the parameter file. vzv_build_model distributes it across ages.
+  vzv_epsilon <- suppressWarnings(as.numeric(params$external_foi_annual))
+  if (length(vzv_epsilon) != 1 || is.na(vzv_epsilon)) {
+    stop("params$external_foi_annual is required for the varicella model ",
+         "(mean external importation force of infection; no default is applied). ",
+         "Add 'external_foi_annual' to the Varicella row of model_input_parameters.csv.")
+  }
   build_for <- function(pop) {
     fp <- vzv_fine_populations(pop, fine_edges, groups)
     agg <- vzv_aggregate_matrix(cm$C, fp, groups)
     vzv_build_model(agg$C, pop, first_band_years, labs,
                     R0_pop = params$basic_reproduction_number,
                     ve_infection = params$vaccine_effectiveness,
-                    duration_infectious_days = params$duration_infectious_days)
+                    duration_infectious_days = params$duration_infectious_days,
+                    external_foi_annual = vzv_epsilon)
   }
 
   # ---- h from the national prevaccine equilibrium ---------------------------

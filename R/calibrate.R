@@ -32,11 +32,18 @@ calibrate <- function(df) {
   source(read_path_calibrate_pneumo_r)
   df_pneumo_calibrated <- calibrate_pneumo(df)
   
-    
+  ## Run RSV calibration based on observed data
+  # --------------------------------------------------------------------------
+  read_path_calibrate_rsv_r <- here("R/calibrate_rsv.R")
+  source(read_path_calibrate_rsv_r)
+  df_rsv_calibrated <- calibrate_rsv(df)
+ 
+  
   # Union the calibrated results for each disease
   df_calibrated <- union(df_rota_calibrated, 
                          df_pertussis_calibrated) %>%
-                   union(df_pneumo_calibrated)
+                   union(df_pneumo_calibrated) %>%
+                   union(df_rsv_calibrated)
   return(df_calibrated)
   
 }
