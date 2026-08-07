@@ -46,6 +46,7 @@ compile_model_input_data <- function() {
   # calculate_structural_vaccine_coverage (fixed, hardwired). The coverage file's
   # `vaccine` is relabelled "RSV" so it joins to the RSV parameter row.
   df_census_0_1 <- df_census_0_4 %>%
+    filter(state_name != "District of Columbia") %>%
     mutate(age_group_population = age_group_population / 5,
            age_group = "0-1 years",
            age_group_length = 1)

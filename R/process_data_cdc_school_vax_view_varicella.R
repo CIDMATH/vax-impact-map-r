@@ -27,10 +27,10 @@ process_data_cdc_school_vax_view_varicella <- function() {
                     filter(Vaccine.Exemption=='Varicella' & 
                            Dose=='UTD (unknown disease history)' &
                            Geography.Type %in% c('States','National') &
-                           School.Year=='2023-24' &
+                           School.Year=='2024-25' &
                            !Geography %in% c('NY-City of New York',
                                              'TX-City of Houston',
-                                             'U.S. Median')) %>%
+                                             'U.S. Median',"District of Columbia","Puerto Rico")) %>%
                       select(Vaccine.Exemption, Geography, School.Year, Estimate....) %>%
                         rename(vaccine = Vaccine.Exemption,
                                state_name = Geography,

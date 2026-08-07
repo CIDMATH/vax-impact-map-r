@@ -24,7 +24,7 @@ process_data_cdc_school_vax_view_dtap <- function() {
   df_processed <- df %>% 
                     filter(Vaccine.Exemption=='DTP, DTaP, or DT' & 
                            Geography.Type %in% c('States','National') &
-                           School.Year=='2023-24' &
+                           School.Year=='2024-25' &
                            !Geography %in% c('NY-City of New York',
                                              'TX-City of Houston',
                                              'U.S. Median')) %>%

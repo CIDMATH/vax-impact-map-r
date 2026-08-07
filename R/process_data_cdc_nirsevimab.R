@@ -79,7 +79,7 @@ process_data_cdc_nirsevimab <- function() {
                              .data$numerator / .data$population, .data$estimate))
 
   # -- restrict to 50 states + DC (drop territories) --
-  states_dc <- c(state.name, "District of Columbia")
+  states_dc <- c(state.name)  #removing dc for now , "District of Columbia"
   reporting <- raw %>% filter(.data$Jurisdiction %in% states_dc)
 
   # -- national row from reporting states + DC --
