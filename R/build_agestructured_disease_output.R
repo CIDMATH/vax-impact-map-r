@@ -80,7 +80,7 @@ produce_hib_output <- function(
     contact_matrix_path = here::here("data-raw", "csv", "engaged_contact_matrix.csv"),
     hib_age_rates       = here::here("data-raw", "csv", "hib_age_rates.csv"),
     hib_trend           = here::here("data-raw", "csv", "hib_trend.csv"),
-    declines = c(0, 0.05, 0.10, 0.15, 0.20),
+    declines = seq(0,0.2,0.01),
     horizons = c(1, 5, 10, 20),
     verbose  = FALSE) {
 

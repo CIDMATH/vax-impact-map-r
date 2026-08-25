@@ -15,7 +15,7 @@ combine_model_output <- function(
     curated_csv = here::here("data", "csv", "vax_impact_map_model_output_curated.csv"),
     curated_rds = here::here("data", "vax_impact_map_model_output_curated.rds"),
     agestructured_diseases = c("Hib", "Varicella"),
-    reported_declines = c(0, 5, 10, 15, 20),
+    reported_declines = seq(0, 20, 1),
     write = TRUE,
     verbose = TRUE) {
 

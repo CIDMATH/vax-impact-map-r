@@ -1371,7 +1371,7 @@ hib_trajectory_rates <- function(
 run_hib_agestructured <- function(
     coverage_df, pop_df, params, contact_matrix_path, hib_age_rates,
     hib_trend = NULL,
-    declines = c(0, 0.05, 0.10, 0.15, 0.20),
+    declines = seq(0,0.20,0.01),
     horizons = c(1, 5, 10, 20),
     national_name = "United States",
     R0_pop = 1.4,

@@ -699,7 +699,7 @@ vzv_curate <- function(df) {
 
 varicella_agestructured_main <- function(coverage_df, pop_df, params,
                                          contact_matrix_path,
-                                         declines = c(0, 0.05, 0.10, 0.15, 0.20),
+                                         declines = seq(0,0.20,0.01),
                                          horizons = c(1, 5, 10, 20),
                                          write = FALSE,
                                          output_directory = "data",
