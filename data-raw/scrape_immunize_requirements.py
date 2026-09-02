@@ -31,7 +31,7 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 
-YEAR = 2025
+YEAR = 2026
 BASE = "https://www.immunize.org/official-guidance/state-policies/vaccine-requirements"
 
 # slug stem (without -YEAR) -> display vaccine name
@@ -105,6 +105,15 @@ def clean(x: str) -> str:
     return re.sub(r"\s+", " ", (x or "").replace("\xa0", " ")).strip()
 
 
+def canon(field: str):
+    """Map a header cell to its canonical column, ignoring footnote markers.
+    Immunize.org appends '*' (and occasionally daggers) to headers that carry a
+    footnote, e.g. 'Number of doses required*'; without stripping them the
+    lookup silently fails and the column is dropped."""
+    key = re.sub(r"[\*\u2020\u2021\u00a7]+\s*$", "", clean(field)).strip().lower()
+    return FIELD_CANON.get(key)
+
+
 def expand_row(tr):
     """Return a flat list of cell texts, expanding colspan (rowspan ignored: these
     tables only span the group-header row horizontally)."""
@@ -125,27 +134,35 @@ def parse_table(table, slug, vaccine, url):
     group = grid[h]
     # is the next row a sub-header (no jurisdiction in col0, has a Requirement field)?
     sub = grid[h + 1] if h + 1 < len(grid) else []
-    has_sub = sub and clean(sub[0]) not in ALLJ and any(c.lower() in REQ for c in sub)
+    has_sub = sub and clean(sub[0]) not in ALLJ and any(canon(c) == "required" for c in sub)
 
     colmap = []  # (setting, canonical_field) per data column index >=1
     if has_sub:
-        settings = [c for c in group[1:] if c]
+        # expand_row() repeats a colspan'd group header once per column
+        # (CHILDCARE, CHILDCARE, CHILDCARE, SCHOOL, SCHOOL, SCHOOL). The
+        # settings list must be collapsed to one entry per group, otherwise
+        # settings[1] is the second CHILDCARE copy and the SCHOOL columns are
+        # written on top of the Childcare record instead of a School record.
+        settings = []
+        for c in group[1:]:
+            if c and (not settings or settings[-1] != c):
+                settings.append(c)
         fields = sub[1:] if len(sub) == len(group) else sub  # align to data cols
         si = -1
         for f in fields:
-            if f.lower() in REQ:
+            if canon(f) == "required":
                 si += 1
             setting = settings[si] if 0 <= si < len(settings) else (settings[-1] if settings else "")
-            colmap.append((SET_NORM.get(setting, setting), FIELD_CANON.get(f.lower())))
+            colmap.append((SET_NORM.get(setting, setting), canon(f)))
         data_start = h + 2
     else:
         default = SINGLE_SETTING.get(slug, "")
         for f in group[1:]:
             m = re.match(r"(CHILDCARE|SCHOOL|COLLEGE)\s+(.+)", f, re.I)
             if m:
-                colmap.append((SET_NORM.get(m.group(1).upper(), m.group(1)), FIELD_CANON.get(m.group(2).lower())))
+                colmap.append((SET_NORM.get(m.group(1).upper(), m.group(1)), canon(m.group(2))))
             else:
-                colmap.append((default, FIELD_CANON.get(f.lower())))
+                colmap.append((default, canon(f)))
         data_start = h + 1
 
     records = []
@@ -158,12 +175,12 @@ def parse_table(table, slug, vaccine, url):
         vals = g[1:]
         off = len(colmap) - len(vals)
         per = {}
-        for k, (setting, canon) in enumerate(colmap):
+        for k, (setting, field) in enumerate(colmap):
             vi = k - off
             val = clean(vals[vi]) if 0 <= vi < len(vals) else ""
             per.setdefault(setting, {})
-            if canon:
-                per[setting][canon] = val
+            if field:
+                per[setting][field] = val
         for setting, fields in per.items():
             r = {"jurisdiction": juris, "vaccine": vaccine, "setting": setting,
                  "source_year": YEAR, "source_url": url, **fields}
