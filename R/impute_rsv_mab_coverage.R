@@ -1,5 +1,5 @@
 # Statistical imputation of state-level infant RSV monoclonal antibody coverage
-# using coverage for five routinely recommended childhood vaccines.
+# using coverage for six routinely recommended childhood immunizations.
 #
 # Inputs (percent units, 0-100):
 #   cdc_nirsevimab_coverage.csv
@@ -9,19 +9,25 @@
 #   cdc_school_vax_view_varicella.csv
 #   cdc_child_vax_view_hib.csv
 #
+# Hepatitis B birth-dose coverage is assembled internally from CDC Child
+# VaxView. The function first reuses data-raw/cdc_child_vax_view.rds when it is
+# available; otherwise it queries the CDC Socrata API. No separate Hep B input
+# file is required.
+#
 # Primary model:
 #   Seven-nearest-neighbor (KNN) imputation based on standardized coverage for
-#   rotavirus, DTaP, PCV, varicella, and Hib. For each state without observed
+#   rotavirus, DTaP, PCV, varicella, Hib, and Hep B birth dose. For each state
+#   without observed
 #   mAb coverage, the estimate is the mean observed mAb coverage among the seven
-#   reporting states with the most similar five-vaccine coverage profiles.
+#   reporting states with the most similar six-immunization coverage profiles.
 #
 # Benchmark models:
 #   1. Mean observed state coverage
 #   2. Seven-nearest-neighbor imputation
 #   3. Rotavirus-only regression
-#   4. Composite five-vaccine coverage regression
-#   5. Ordinary five-predictor regression
-#   6. Five-predictor ridge regression
+#   4. Composite six-immunization coverage regression
+#   5. Ordinary six-predictor regression
+#   6. Six-predictor ridge regression
 #
 # Missing predictor values are replaced by the training-state mean within each
 # cross-validation fold. This currently matters for Montana, which is absent
@@ -32,6 +38,7 @@
 #   rsv_mab_coverage_imputed.csv
 #   rsv_mab_model_performance.csv
 #   rsv_mab_cross_validated_predictions.csv
+#   rsv_mab_hepb_birth_predictor.csv
 #   rsv_mab_imputation_diagnostics.pdf (optional)
 #
 # The final output retains observed coverage when available and uses model
@@ -41,13 +48,21 @@
 
 
 impute_rsv_mab_coverage <- function(
-    input_dir = file.path(getwd(), "data-raw", "csv"),
-    output_dir = input_dir,
-    final_model = c("knn7", "best_cv", "ridge5"),
+    input_dir = here::here("data-raw", "csv"),
+   output_dir = input_dir,
+    final_model = c("knn7", "best_cv", "ridge6", "ridge5"),
+    hepb_birth_cohort = NULL,
     make_plots = TRUE,
     seed = 20260804L) {
 
   final_model <- match.arg(final_model)
+  if (identical(final_model, "ridge5")) {
+    warning(
+      "final_model = 'ridge5' is retained as a compatibility alias; using the six-predictor ridge model ('ridge6').",
+      call. = FALSE
+    )
+    final_model <- "ridge6"
+  }
   set.seed(seed)
 
   files <- c(
@@ -75,7 +90,9 @@ impute_rsv_mab_coverage <- function(
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
   states_dc <- c(state.name, "District of Columbia")
-  predictor_names <- c("rotavirus", "dtap", "pcv", "varicella", "hib")
+  predictor_names <- c(
+    "rotavirus", "dtap", "pcv", "varicella", "hib", "hep_b_birth"
+  )
   knn_neighbors <- 7L
   lambda_grid <- 10^seq(-4, 4, length.out = 81L)
 
@@ -142,6 +159,174 @@ impute_rsv_mab_coverage <- function(
     dat
   }
 
+  # Find a column across both the legacy Child VaxView download names (for
+  # example, Estimate....) and the current Socrata field names (for example,
+  # coverage_estimate).
+  find_column <- function(dat, candidates, required = TRUE) {
+    normalize <- function(x) tolower(gsub("[^a-z0-9]", "", x))
+    normalized_names <- normalize(names(dat))
+    candidate_positions <- match(normalize(candidates), normalized_names)
+    candidate_positions <- candidate_positions[!is.na(candidate_positions)]
+
+    if (length(candidate_positions) > 0L) {
+      return(names(dat)[candidate_positions[1L]])
+    }
+    if (isTRUE(required)) {
+      stop(
+        "CDC Child VaxView data are missing an expected column. Tried: ",
+        paste(candidates, collapse = ", "),
+        call. = FALSE
+      )
+    }
+    NULL
+  }
+
+  extract_hepb_birth <- function(dat, requested_cohort = NULL) {
+    vaccine_col <- find_column(dat, c("Vaccine"))
+    dose_col <- find_column(dat, c("Dose"))
+    geography_col <- find_column(dat, c("Geography"))
+    year_col <- find_column(
+      dat,
+      c("Birth.Year.Birth.Cohort", "Year.Season", "year_season")
+    )
+    dimension_type_col <- find_column(
+      dat,
+      c("Dimension.Type", "dimension_type")
+    )
+    dimension_col <- find_column(dat, c("Dimension"))
+    estimate_col <- find_column(
+      dat,
+      c(
+        "vaccine_coverage_estimate", "Coverage.Estimate",
+        "coverage_estimate", "Estimate....", "Estimate"
+      )
+    )
+
+    years <- trimws(as.character(dat[[year_col]]))
+    single_year <- grepl("^[0-9]{4}$", years)
+    available_cohorts <- sort(unique(suppressWarnings(
+      as.integer(years[single_year])
+    )))
+    available_cohorts <- available_cohorts[is.finite(available_cohorts)]
+
+    if (length(available_cohorts) == 0L) {
+      stop(
+        "No single-year birth cohorts were found in the CDC Hep B data.",
+        call. = FALSE
+      )
+    }
+
+    cohort_used <- if (is.null(requested_cohort)) {
+      max(available_cohorts)
+    } else {
+      as.integer(requested_cohort)
+    }
+
+    if (!cohort_used %in% available_cohorts) {
+      stop(
+        "Requested Hep B birth cohort ", cohort_used,
+        " is unavailable. Available single-year cohorts include: ",
+        paste(available_cohorts, collapse = ", "),
+        call. = FALSE
+      )
+    }
+
+    keep <-
+      trimws(as.character(dat[[vaccine_col]])) == "Hep B" &
+      trimws(as.character(dat[[dose_col]])) ==
+        "≥1 Dose, 3 Day (Birth Dose)" &
+      trimws(as.character(dat[[dimension_type_col]])) == "Age" &
+      trimws(as.character(dat[[dimension_col]])) == "0-3 Days" &
+      years == as.character(cohort_used)
+
+    out <- data.frame(
+      state_name = trimws(as.character(dat[[geography_col]][keep])),
+      hep_b_birth = parse_coverage(dat[[estimate_col]][keep]),
+      stringsAsFactors = FALSE
+    )
+    out <- out[
+      out$state_name %in% c(states_dc, "United States"),
+      ,
+      drop = FALSE
+    ]
+
+    if (nrow(out) == 0L) {
+      stop(
+        "No state-level Hep B birth-dose observations remained after filtering.",
+        call. = FALSE
+      )
+    }
+    if (anyDuplicated(out$state_name)) {
+      duplicates <- unique(out$state_name[duplicated(out$state_name)])
+      stop(
+        "CDC Hep B birth-dose data contain duplicate geography rows for cohort ",
+        cohort_used, ": ", paste(duplicates, collapse = ", "),
+        call. = FALSE
+      )
+    }
+
+    list(data = out, cohort = cohort_used)
+  }
+
+  load_hepb_birth <- function(requested_cohort = NULL) {
+    cached_candidates <- unique(c(
+      file.path(dirname(input_dir), "cdc_child_vax_view.rds"),
+      file.path(getwd(), "data-raw", "cdc_child_vax_view.rds")
+    ))
+    cached_path <- cached_candidates[file.exists(cached_candidates)][1L]
+
+    if (!is.na(cached_path) && length(cached_path) == 1L) {
+      cached <- tryCatch(readRDS(cached_path), error = function(e) NULL)
+      if (!is.null(cached)) {
+        extracted <- tryCatch(
+          extract_hepb_birth(cached, requested_cohort),
+          error = function(e) NULL
+        )
+        if (!is.null(extracted)) {
+          extracted$source <- paste0("cached Child VaxView: ", cached_path)
+          return(extracted)
+        }
+      }
+    }
+
+    # Pull only the Hep B birth-dose rows rather than downloading the full
+    # Child VaxView table. No Socrata application token is required.
+    api_base <- "https://data.cdc.gov/resource/fhky-rtsk.csv"
+    where_clause <- paste(
+      "vaccine='Hep B'",
+      "dose='≥1 Dose, 3 Day (Birth Dose)'",
+      "dimension_type='Age'",
+      "dimension='0-3 Days'",
+      sep = " AND "
+    )
+    api_url <- paste0(
+      api_base,
+      "?$limit=5000&$where=",
+      utils::URLencode(where_clause, reserved = TRUE)
+    )
+
+    downloaded <- tryCatch(
+      utils::read.csv(
+        api_url,
+        stringsAsFactors = FALSE,
+        check.names = FALSE,
+        na.strings = c("", "NA", "N/A")
+      ),
+      error = function(e) {
+        stop(
+          "Unable to obtain Hep B birth-dose coverage from the cached Child ",
+          "VaxView data or the CDC API. Original API error: ",
+          conditionMessage(e),
+          call. = FALSE
+        )
+      }
+    )
+
+    extracted <- extract_hepb_birth(downloaded, requested_cohort)
+    extracted$source <- "CDC Child VaxView Socrata API"
+    extracted
+  }
+
   imported <- Map(
     function(path, value_name) read_coverage(path, value_name),
     input_paths,
@@ -150,6 +335,10 @@ impute_rsv_mab_coverage <- function(
   # Map/mapply naming can vary with its arguments, so restore the expected
   # names explicitly rather than relying on implicit propagation.
   names(imported) <- names(files)
+
+  hepb_birth_result <- load_hepb_birth(hepb_birth_cohort)
+  imported[["hep_b_birth"]] <- hepb_birth_result$data
+  hepb_birth_cohort_used <- hepb_birth_result$cohort
 
   # Begin with a fixed 50-state + DC geography so territories and national
   # aggregates cannot enter the statistical model accidentally.
@@ -356,12 +545,12 @@ impute_rsv_mab_coverage <- function(
       )))
     }
 
-    if (model == "ols5") {
+    if (model == "ols6") {
       coefficients <- solve_coefficients(scaled$train, y_logit, lambda = 0)
       return(from_logit(predict_coefficients(scaled$new, coefficients)))
     }
 
-    if (model == "ridge5") {
+    if (model == "ridge6") {
       if (is.null(ridge_lambda)) {
         ridge_lambda <- select_ridge_lambda(x_train, y_train)$lambda
       }
@@ -381,7 +570,7 @@ impute_rsv_mab_coverage <- function(
   # ------------------------------------------------------------------------
 
   candidate_models <- c(
-    "mean", "knn7", "rotavirus", "composite", "ols5", "ridge5"
+    "mean", "knn7", "rotavirus", "composite", "ols6", "ridge6"
   )
   cv_predictions <- matrix(
     NA_real_,
@@ -409,14 +598,14 @@ impute_rsv_mab_coverage <- function(
     cv_predictions[i, "composite"] <- predict_candidate(
       "composite", x_train, y_train, x_test
     )
-    cv_predictions[i, "ols5"] <- predict_candidate(
-      "ols5", x_train, y_train, x_test
+    cv_predictions[i, "ols6"] <- predict_candidate(
+      "ols6", x_train, y_train, x_test
     )
 
     inner_tuning <- select_ridge_lambda(x_train, y_train)
     outer_ridge_lambda[i] <- inner_tuning$lambda
-    cv_predictions[i, "ridge5"] <- predict_candidate(
-      "ridge5",
+    cv_predictions[i, "ridge6"] <- predict_candidate(
+      "ridge6",
       x_train,
       y_train,
       x_test,
@@ -453,14 +642,14 @@ impute_rsv_mab_coverage <- function(
   model_used <- if (final_model == "best_cv") best_cv_model else final_model
 
   mean_mae <- performance$mae[performance$model == "mean"]
-  ridge_mae <- performance$mae[performance$model == "ridge5"]
-  if (model_used == "ridge5" &&
+  ridge_mae <- performance$mae[performance$model == "ridge6"]
+  if (model_used == "ridge6" &&
       length(mean_mae) == 1L && length(ridge_mae) == 1L &&
       ridge_mae >= mean_mae) {
     warning(
       sprintf(
         paste0(
-          "The five-vaccine ridge model did not outperform the mean benchmark ",
+          "The six-predictor ridge model did not outperform the mean benchmark ",
           "in LOSO-CV (ridge MAE %.2f vs mean MAE %.2f percentage points). ",
           "Predictions will therefore be strongly shrunk toward the observed-state mean."
         ),
@@ -496,9 +685,9 @@ impute_rsv_mab_coverage <- function(
   full_ridge_tuning <- select_ridge_lambda(x_observed, y_observed)
   final_ridge_lambda <- full_ridge_tuning$lambda
 
-  if (model_used == "ridge5") {
+  if (model_used == "ridge6") {
     model_predictions <- predict_candidate(
-      "ridge5",
+      "ridge6",
       x_observed,
       y_observed,
       x_all,
@@ -600,7 +789,7 @@ impute_rsv_mab_coverage <- function(
     performance$model == best_cv_model
   performance$used_for_imputation <- performance$model == model_used
   performance$final_ridge_lambda <- ifelse(
-    performance$model == "ridge5",
+    performance$model == "ridge6",
     final_ridge_lambda,
     NA_real_
   )
@@ -613,10 +802,21 @@ impute_rsv_mab_coverage <- function(
   output_file <- file.path(output_dir, "rsv_mab_coverage_imputed.csv")
   performance_file <- file.path(output_dir, "rsv_mab_model_performance.csv")
   cv_file <- file.path(output_dir, "rsv_mab_cross_validated_predictions.csv")
+  hepb_file <- file.path(output_dir, "rsv_mab_hepb_birth_predictor.csv")
 
   write.csv(output, output_file, row.names = FALSE, na = "NA")
   write.csv(performance, performance_file, row.names = FALSE, na = "NA")
   write.csv(cv_output, cv_file, row.names = FALSE, na = "NA")
+  write.csv(
+    transform(
+      hepb_birth_result$data,
+      birth_cohort = hepb_birth_cohort_used,
+      data_source = hepb_birth_result$source
+    ),
+    hepb_file,
+    row.names = FALSE,
+    na = "NA"
+  )
 
   saveRDS(
     output,
@@ -712,7 +912,11 @@ impute_rsv_mab_coverage <- function(
   message("Best LOSO-CV model: ", best_cv_model)
   message("Model used for imputation: ", model_used)
   message("KNN neighbors: ", knn_neighbors)
-  if (model_used == "ridge5") {
+  message(
+    "Hep B birth-dose predictor cohort: ", hepb_birth_cohort_used,
+    " (", hepb_birth_result$source, ")"
+  )
+  if (model_used == "ridge6") {
     message("Final ridge lambda: ", signif(final_ridge_lambda, 5))
   }
   message("Predicted states: ", sum(output$coverage_source == "predicted"))
@@ -725,6 +929,8 @@ impute_rsv_mab_coverage <- function(
     model_used = model_used,
     best_cv_model = best_cv_model,
     knn_neighbors = knn_neighbors,
+    hepb_birth_cohort = hepb_birth_cohort_used,
+    hepb_birth_predictor = hepb_birth_result$data,
     final_ridge_lambda = final_ridge_lambda
   ))
 }

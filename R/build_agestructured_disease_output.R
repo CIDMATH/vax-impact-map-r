@@ -121,7 +121,7 @@ produce_varicella_output <- function(
     coverage_csv        = here::here("data-raw", "csv", "cdc_school_vax_view_varicella.csv"),
     pop_csv             = here::here("data-raw", "csv", "census_acs_state_population_vzv_bands.csv"),
     contact_matrix_path = here::here("data-raw", "csv", "engaged_contact_matrix.csv"),
-    declines = c(0, 0.05, 0.10, 0.15, 0.20),
+    declines = seq(0,0.2,0.01),
     horizons = c(1, 5, 10, 20),
     verbose  = FALSE) {
 

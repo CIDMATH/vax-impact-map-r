@@ -322,7 +322,7 @@ get_data_cdc_coverage_timeseries <- function(
   df_hib <- process_child(
     df_child,
     vaccine_value = "Hib",
-    dimension_value = "35 Months",
+    dimension_value = "24 Months",
     dose_value = "Primary Series"
   )
 

@@ -9,7 +9,7 @@
 #
 # Hib transmission is represented through nasopharyngeal carriage. Invasive
 # disease is a rare, age-specific outcome of a new Hib carriage acquisition.
-# The transmission coefficient is calibrated once nationally to R0 = 1.4 by
+# The transmission coefficient is calibrated once nationally to R0 = 1.3 by
 # default and then held fixed across states.
 #
 # IMPORTANT REVISION: DETERMINISTIC COHORT AGING
@@ -380,10 +380,7 @@ hib_make_cell_grid <- function(N_output) {
 }
 
 
-# ACS population builder. Returns the 13 reporting bands expected by the model.
-# Renamed from get_data_census_acs_state_population_hib_bands so the public
-# get_data_* entry point can live in its own module (single source of truth for
-# the Hib age structure stays here, next to the band constants).
+# Optional ACS helper. It returns the 13 reporting bands expected by the model.
 hib_build_acs_band_population <- function(
     year = 2023, save_rds = NULL, save_csv = NULL) {
 
@@ -662,7 +659,7 @@ hib_vaccine_effect_matrices <- function(params, grid) {
 # -----------------------------------------------------------------------------
 
 hib_build_model <- function(
-    C_parent_daily, N_output, params, q = NULL, R0_pop = 1.4,
+    C_parent_daily, N_output, params, q = NULL, R0_pop = 1.3,
     external_foi_annual = NULL, balance_contacts = TRUE) {
 
   if (!all(dim(C_parent_daily) == length(HIB_PARENT_LABELS))) {
@@ -678,7 +675,7 @@ hib_build_model <- function(
   if (duration_carriage_days <= 0) stop("Carriage duration must be positive.")
   rho <- 365 / duration_carriage_days
   natural_waning <- hib_num_param(
-    params, "natural_immunity_waning_rate_annual", default = 0.0001
+    params, "natural_immunity_waning_rate_annual", default = 0.0939
   )
   if (natural_waning < 0) {
     stop("natural_immunity_waning_rate_annual cannot be negative.")
@@ -1371,10 +1368,10 @@ hib_trajectory_rates <- function(
 run_hib_agestructured <- function(
     coverage_df, pop_df, params, contact_matrix_path, hib_age_rates,
     hib_trend = NULL,
-    declines = seq(0,0.20,0.01),
+    declines = c(0, 0.05, 0.10, 0.15, 0.20),
     horizons = c(1, 5, 10, 20),
     national_name = "United States",
-    R0_pop = 1.4,
+    R0_pop = 1.3,
     dt = 1 / 52,
     verbose = TRUE) {
 
@@ -1840,12 +1837,12 @@ hib_curate <- function(df) {
 hib_agestructured_main <- function(
     coverage_df, pop_df, params, contact_matrix_path, hib_age_rates,
     hib_trend = NULL,
-    declines = c(0, 0.05, 0.10, 0.15, 0.20),
+    declines = seq(0, 0.20,0.01),
     horizons = c(1, 5, 10, 20),
     national_name = "United States",
-    R0_pop = 1.4,
+    R0_pop = 1.3,
     dt = 1 / 52,
-    write = FALSE,
+    write = TRUE,
     output_directory = "data",
     csv_directory = file.path("data", "csv"),
     verbose = TRUE) {
